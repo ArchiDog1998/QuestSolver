@@ -1,0 +1,25 @@
+{
+  "Author": "ArchiTed",
+  "Name": "Quest Solver",
+  "InternalName": "QuestSolver",
+  "Description": "Configurable timeline display of all the actions you use.",
+  "ApplicableVersion": "any",
+  "RepoUrl": "https://github.com/ArchiDog1998/QuestSolver",
+  "Tags": [
+    "UI"
+  ],
+  "CategoryTags": [
+    "UI"
+  ],
+  "DalamudApiLevel": 10,
+  "LoadRequiredState": 0,
+  "LoadSync": false,
+  "CanUnloadAsync": false,
+  "LoadPriority": 0,
+  "ImageUrls": [
+    "https://raw.githubusercontent.com/ArchiDog1998/ActionTimelineEx/main/Images/example.gif"
+  ],
+  "IconUrl": "https://xivapi.com/i/000000/000073_hr1.png",
+  "Punchline": "Help you to solve the quest",
+  "AcceptsFeedback": true
+}
