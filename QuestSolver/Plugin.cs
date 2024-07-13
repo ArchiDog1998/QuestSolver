@@ -1,11 +1,11 @@
 ﻿using Dalamud.Interface.Windowing;
 using Dalamud.Plugin;
 using ECommons;
+using ECommons.Automation;
 using ECommons.DalamudServices;
 using ECommons.GameHelpers;
 using QuestSolver.Configuration;
 using QuestSolver.IPC;
-using QuestSolver.Solvers;
 using QuestSolver.Windows;
 using XIVConfigUI;
 
@@ -17,12 +17,14 @@ internal class Plugin : IDalamudPlugin
     public static Settings Settings { get; private set; } = null!;
     public static VnavmeshManager Vnavmesh { get; private set; } = null!;
 
-    private readonly List<IDisposable> _dis = [];
-
     public Plugin(IDalamudPluginInterface pluginInterface)
     {
         ECommonsMain.Init(pluginInterface, this);
-        XIVConfigUIMain.Init(pluginInterface, "/questSolver", "Opens the Quest Solver configuration window.", PluginCommand);
+        XIVConfigUIMain.Init(pluginInterface, "/quest", "Opens the Quest Solver configuration window.", PluginCommand);
+
+#if DEBUG
+        Callback.InstallHook();
+#endif
 
         Svc.PluginInterface.UiBuilder.Draw += Draw;
         Svc.PluginInterface.UiBuilder.OpenConfigUi += OpenConfigUi;
@@ -39,8 +41,29 @@ internal class Plugin : IDalamudPlugin
 
         Vnavmesh = new VnavmeshManager();
         CreateWindows();
+    }
 
-        _dis.Add(new AetherCurrentSolver());
+    public void Dispose()
+    {
+        Settings.Save();
+
+        foreach (var item in _settingsWindow.Items.OfType<SolverItem>())
+        {
+            item.Solver.Disable();
+        }
+
+        _windowSystem.RemoveAllWindows();
+
+#if DEBUG
+        Callback.UninstallHook();
+#endif
+        XIVConfigUIMain.Dispose();
+        ECommonsMain.Dispose();
+
+        Svc.PluginInterface.UiBuilder.Draw -= Draw;
+        Svc.PluginInterface.UiBuilder.OpenConfigUi -= OpenConfigUi;
+        Svc.PluginInterface.UiBuilder.OpenMainUi -= OpenConfigUi;
+        GC.SuppressFinalize(this);
     }
 
     private void Draw()
@@ -49,26 +72,6 @@ internal class Plugin : IDalamudPlugin
         if (Svc.GameGui.GameUiHidden) return;
 
         _windowSystem?.Draw();
-    }
-
-    public void Dispose()
-    {
-        Settings.Save();
-
-        foreach (IDisposable disposable in _dis)
-        {
-            disposable.Dispose();
-        }
-
-        _windowSystem.RemoveAllWindows();
-
-        XIVConfigUIMain.Dispose();
-        ECommonsMain.Dispose();
-
-        Svc.PluginInterface.UiBuilder.Draw -= Draw;
-        Svc.PluginInterface.UiBuilder.OpenConfigUi -= OpenConfigUi;
-        Svc.PluginInterface.UiBuilder.OpenMainUi -= OpenConfigUi;
-        GC.SuppressFinalize(this);
     }
 
     private static void CreateWindows()
