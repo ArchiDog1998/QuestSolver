@@ -1,5 +1,8 @@
-﻿using Dalamud.Game.ClientState.Objects.Types;
+﻿using Dalamud.Game.Addon.Lifecycle;
+using Dalamud.Game.Addon.Lifecycle.AddonArgTypes;
+using Dalamud.Game.ClientState.Objects.Types;
 using Dalamud.Plugin.Services;
+using ECommons.Automation;
 using ECommons.DalamudServices;
 using ECommons.GameFunctions;
 using ECommons.GameHelpers;
@@ -25,19 +28,22 @@ internal class QuestGetterSolver : BaseSolver
     protected override void Enable()
     {
         Plugin.IsEnableSolver<AetherCurrentSolver>(false);
+
+        Svc.AddonLifecycle.RegisterListener(AddonEvent.PostSetup, "JournalAccept", OnAddonJournalAccept);
+
         Svc.Framework.Update += FrameworkUpdate;
     }
 
     protected override void Disable()
     {
+        Svc.AddonLifecycle.UnregisterListener(OnAddonJournalAccept);
+
         Svc.Framework.Update -= FrameworkUpdate;
     }
 
     private void FrameworkUpdate(IFramework framework)
     {
         if (Plugin.GetSolver<QuestFinishSolver>()?.IsEnable ?? false) return;
-
-        ClickQuest();
 
         if (!Available) return;
 
@@ -81,14 +87,9 @@ internal class QuestGetterSolver : BaseSolver
         return tar;
     }
 
-    internal static unsafe void ClickQuest()
+    internal static unsafe void OnAddonJournalAccept(AddonEvent type, AddonArgs args)
     {
-        var result = (AtkUnitBase*)Svc.GameGui.GetAddonByName("JournalAccept");
-        if (result == null || !result->IsVisible) return;
-
-        if (CallbackHelper.Fire(result, true, 3, 4922)) //TODO: This is abnormal!
-        {
-            Plugin.IsEnableSolver<QuestFinishSolver>();
-        }
+        Callback.Fire((AtkUnitBase*)args.Addon, true, 3);
+        Plugin.IsEnableSolver<QuestFinishSolver>();
     }
 }

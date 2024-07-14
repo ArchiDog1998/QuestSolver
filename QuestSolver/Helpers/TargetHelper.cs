@@ -11,6 +11,7 @@ internal static class TargetHelper
 
     public unsafe static ulong Interact(IGameObject obj)
     {
+        if (MountHelper.InCombat) return 1;
         if (DateTime.Now - _lastCall < TimeSpan.FromSeconds(1)) return 1;
         _lastCall = DateTime.Now;
 

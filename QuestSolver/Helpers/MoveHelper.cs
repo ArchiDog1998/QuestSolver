@@ -9,7 +9,7 @@ using System.Numerics;
 namespace QuestSolver.Helpers;
 internal static class MoveHelper
 {
-    internal const float CLOSE_DISTANCE_SQUARE = 3;
+    internal const float CLOSE_DISTANCE_SQUARE = 5;
 
     private static Vector3 lastPos = default;
     private static DateTime stopTime = DateTime.Now;

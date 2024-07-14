@@ -39,6 +39,7 @@ internal class MyQuest : Quest
 internal unsafe class QuestItem(int index)
 {
     public QuestWork Work => QuestManager.Instance()->NormalQuests[index];
+
     public byte[] Sequences
     {
         get
@@ -100,7 +101,7 @@ internal class QuestFinishSolver : BaseSolver
 
         Svc.AddonLifecycle.RegisterListener(AddonEvent.PostSetup, "JournalResult", OnAddonJournalResult);
         Svc.AddonLifecycle.RegisterListener(AddonEvent.PostDraw, "JournalResult", OnAddonJournalResult);
-        Svc.AddonLifecycle.RegisterListener(AddonEvent.PostDraw, "Request", OnAddonRequest);
+        Svc.AddonLifecycle.RegisterListener(AddonEvent.PostDraw, ["Request", "SelectString"], OnAddonRequest);
 
         Svc.Framework.Update += FrameworkUpdate;
     }
@@ -127,6 +128,7 @@ internal class QuestFinishSolver : BaseSolver
         Svc.Log.Info("Try to finish " +  result?.Quest.Name.RawString);
         MovedLevels.Clear();
         _quest = result;
+        _validTargets.Clear();
     }
 
     protected override void Disable()
@@ -250,7 +252,6 @@ internal class QuestFinishSolver : BaseSolver
             _validTargets.Remove(item);
         }
     }
-
     private unsafe void OnAddonJournalResult(AddonEvent type, AddonArgs args)
     {
         var item = _quest?.Quest.OptionalItemReward.LastOrDefault(i => i.Row != 0);
@@ -265,7 +266,7 @@ internal class QuestFinishSolver : BaseSolver
         IsEnable = false;
     }
 
-    private unsafe void OnAddonRequest(AddonEvent type, AddonArgs args)
+    private static unsafe void OnAddonRequest(AddonEvent type, AddonArgs args)
     {
         Callback.Fire((AtkUnitBase*)args.Addon, true, 0);
     }

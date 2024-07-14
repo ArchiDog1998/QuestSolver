@@ -1,4 +1,5 @@
-﻿using Dalamud.Game.ClientState.Objects.SubKinds;
+﻿using Dalamud.Game.Addon.Lifecycle;
+using Dalamud.Game.ClientState.Objects.SubKinds;
 using Dalamud.Plugin.Services;
 using ECommons.DalamudServices;
 using ECommons.GameHelpers;
@@ -26,8 +27,6 @@ internal class AetherCurrentSolver : BaseSolver
 
     private void FrameworkUpdate(IFramework framework)
     {
-        if (!Available) return;
-
         var aether = Aethers.FirstOrDefault(a => !Unlocked(a.RowId));
 
         if (aether == null)
@@ -36,11 +35,20 @@ internal class AetherCurrentSolver : BaseSolver
             return;
         }
 
+        var isStatic = aether.Quest.Row == 0;
+
         if (!_points.TryGetValue(aether, out var dest))
         {
-            var eObj = Svc.Data.GetExcelSheet<EObj>()?.FirstOrDefault(e => e.Data == aether.RowId);
-            var level = Svc.Data.GetExcelSheet<Level>()?.FirstOrDefault(e => e.Object == eObj?.RowId);
-            _points[aether] = dest = level;
+            if (isStatic)
+            {
+                var eObj = Svc.Data.GetExcelSheet<EObj>()?.FirstOrDefault(e => e.Data == aether.RowId);
+                var level = Svc.Data.GetExcelSheet<Level>()?.FirstOrDefault(e => e.Object == eObj?.RowId);
+                _points[aether] = dest = level;
+            }
+            else
+            {
+                _points[aether] = dest = aether.Quest.Value?.IssuerLocation.Value;
+            }
         }
 
         if (dest == null)
@@ -49,8 +57,10 @@ internal class AetherCurrentSolver : BaseSolver
             return;
         }
 
-        if (aether.Quest.Row == 0)
+        if (isStatic)
         {
+            if (!Available) return;
+
             if (MoveHelper.MoveTo(dest)) return;
 
             StaticAether(aether);
@@ -69,8 +79,6 @@ internal class AetherCurrentSolver : BaseSolver
     private static void QuestAether(AetherCurrent aether, Level dest)
     {
         if (Plugin.GetSolver<QuestFinishSolver>()?.IsEnable ?? false) return;
-
-        QuestGetterSolver.ClickQuest();
 
         if (!Available) return;
 
@@ -110,12 +118,15 @@ internal class AetherCurrentSolver : BaseSolver
 
         Plugin.IsEnableSolver<QuestGetterSolver>(false);
 
+        Svc.AddonLifecycle.RegisterListener(AddonEvent.PostSetup, "JournalAccept", QuestGetterSolver.OnAddonJournalAccept);
         Svc.Framework.Update += FrameworkUpdate;
     }
 
     protected override void Disable()
     {
         Plugin.Vnavmesh.Stop();
+
+        Svc.AddonLifecycle.UnregisterListener(QuestGetterSolver.OnAddonJournalAccept);
         Svc.Framework.Update -= FrameworkUpdate;
     }
 }

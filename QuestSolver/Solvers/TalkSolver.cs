@@ -15,8 +15,7 @@ internal class TalkSolver : BaseSolver
     protected BoolDelay _talkDelay;
     protected BoolDelay _cutSceneTalkDelay;
 
-
-    [Range(1, 100, ConfigUnitType.None)]
+    [Range(1, 1000, ConfigUnitType.None, 0.1f)]
     [UI("Character per second", Order = 1)]
     public float TalkDelay { get; set; } = 10;
 
