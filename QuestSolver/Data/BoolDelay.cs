@@ -4,7 +4,7 @@ internal struct BoolDelay(Func<float> getTime)
     private bool _lastValue = false;
     private DateTime _lastFoundTime = DateTime.Now;
 
-    public bool Delay(bool value)
+    public bool Delay(bool value, float? timeOverride = null)
     {
         if (value && !_lastValue)
         {
@@ -14,6 +14,6 @@ internal struct BoolDelay(Func<float> getTime)
 
         var span = DateTime.Now - _lastFoundTime;
 
-        return span.TotalSeconds > getTime() && value;
+        return span.TotalSeconds > (timeOverride ?? getTime()) && value;
     }
 }

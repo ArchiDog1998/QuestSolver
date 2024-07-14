@@ -30,7 +30,7 @@
   "QuestSolver.Solvers.TalkSolverName.Delay": "Delay",
   "QuestSolver.Solvers.YesOrNoSolver": "Yes Solver",
   "QuestSolver.Solvers.DelaySolverName.Delay": "Delay",
-  "QuestSolver.Solvers.TalkSolverName.TalkDelay": "Talk Delay",
+  "QuestSolver.Solvers.TalkSolverName.TalkDelay": "Character per second",
   "QuestSolver.Solvers.TalkSolverName.CutSceneTalkDelay": "CutScene Talk Delay",
   "QuestSolver.Solvers.QuestGetterSolver": "Quest Getter",
   "QuestSolver.Solvers.QuestGetterSolverName.Range": "Search Range"

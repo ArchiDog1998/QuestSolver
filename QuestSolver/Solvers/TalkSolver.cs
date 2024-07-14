@@ -1,5 +1,6 @@
 ﻿using Dalamud.Plugin.Services;
 using ECommons.DalamudServices;
+using FFXIVClientStructs.FFXIV.Client.UI;
 using FFXIVClientStructs.FFXIV.Component.GUI;
 using QuestSolver.Data;
 using QuestSolver.Helpers;
@@ -15,9 +16,11 @@ internal class TalkSolver : BaseSolver
     protected BoolDelay _cutSceneTalkDelay;
 
 
-    [UI("Talk Delay", Order = 1)]
-    public float TalkDelay { get; set; } = 3;
+    [Range(1, 100, ConfigUnitType.None)]
+    [UI("Character per second", Order = 1)]
+    public float TalkDelay { get; set; } = 10;
 
+    [Range(0, 100, ConfigUnitType.Seconds)]
     [UI("CutScene Talk Delay", Order = 1)]
     public float CutSceneTalkDelay { get; set; } = 3;
 
@@ -43,7 +46,7 @@ internal class TalkSolver : BaseSolver
     {
         var talk = (AtkUnitBase*)Svc.GameGui.GetAddonByName("Talk");
 
-        if (_talkDelay.Delay(talk->IsVisible))
+        if (_talkDelay.Delay(talk->IsVisible, ((AddonTalk*)talk)->AtkTextNode228->NodeText.ToString().Length / TalkDelay))
         {
             if (CallbackHelper.Fire(talk, true))
             {

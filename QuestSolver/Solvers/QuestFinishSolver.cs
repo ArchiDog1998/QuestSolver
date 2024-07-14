@@ -1,5 +1,8 @@
-﻿using Dalamud.Game.ClientState.Objects.Types;
+﻿using Dalamud.Game.Addon.Lifecycle;
+using Dalamud.Game.Addon.Lifecycle.AddonArgTypes;
+using Dalamud.Game.ClientState.Objects.Types;
 using Dalamud.Plugin.Services;
+using ECommons.Automation;
 using ECommons.DalamudServices;
 using ECommons.GameFunctions;
 using ECommons.GameHelpers;
@@ -95,6 +98,10 @@ internal class QuestFinishSolver : BaseSolver
         Plugin.IsEnableSolver<TalkSolver>();
         Plugin.IsEnableSolver<YesOrNoSolver>();
 
+        Svc.AddonLifecycle.RegisterListener(AddonEvent.PostSetup, "JournalResult", OnAddonJournalResult);
+        Svc.AddonLifecycle.RegisterListener(AddonEvent.PostDraw, "JournalResult", OnAddonJournalResult);
+        Svc.AddonLifecycle.RegisterListener(AddonEvent.PostDraw, "Request", OnAddonRequest);
+
         Svc.Framework.Update += FrameworkUpdate;
     }
 
@@ -124,6 +131,9 @@ internal class QuestFinishSolver : BaseSolver
 
     protected override void Disable()
     {
+        Svc.AddonLifecycle.UnregisterListener(OnAddonJournalResult);
+        Svc.AddonLifecycle.UnregisterListener(OnAddonRequest);
+
         Plugin.Vnavmesh.Stop();
         Svc.Framework.Update -= FrameworkUpdate;
 
@@ -135,9 +145,6 @@ internal class QuestFinishSolver : BaseSolver
 
     private void FrameworkUpdate(IFramework framework)
     {
-        CheckItemDetail();
-        ClickResult();
-
         if (!Available) return;
         if (WaitForCombat()) return;
 
@@ -244,22 +251,22 @@ internal class QuestFinishSolver : BaseSolver
         }
     }
 
-    private unsafe void ClickResult()
+    private unsafe void OnAddonJournalResult(AddonEvent type, AddonArgs args)
     {
-        var result = (AtkUnitBase*)Svc.GameGui.GetAddonByName("JournalResult");
-        if (result == null || !result->IsVisible) return;
-
-        if (CallbackHelper.Fire(result, true, 0))
+        var item = _quest?.Quest.OptionalItemReward.LastOrDefault(i => i.Row != 0);
+        if (item != null)
         {
-            IsEnable = false;
+            Callback.Fire((AtkUnitBase*)args.Addon, true, 0, item.Row);
         }
+        else
+        {
+            Callback.Fire((AtkUnitBase*)args.Addon, true, 0);
+        }
+        IsEnable = false;
     }
 
-    private unsafe void CheckItemDetail()
+    private unsafe void OnAddonRequest(AddonEvent type, AddonArgs args)
     {
-        var request = (AtkUnitBase*)Svc.GameGui.GetAddonByName("Request");
-        if (request == null || !request->IsVisible) return;
-
-        CallbackHelper.Fire(request, true, 0);
+        Callback.Fire((AtkUnitBase*)args.Addon, true, 0);
     }
 }

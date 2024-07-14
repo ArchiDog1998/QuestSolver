@@ -5,6 +5,10 @@ namespace QuestSolver.Helpers;
 internal class CallbackHelper
 {
     private static DateTime _lastCall = DateTime.Now;
+    public static unsafe bool Fire(nint Base, bool updateState, params object[] values)
+    {
+        return Fire((AtkUnitBase*)Base, updateState, values);
+    }
     public static unsafe bool Fire(AtkUnitBase* Base, bool updateState, params object[] values)
     {
         if (DateTime.Now - _lastCall < TimeSpan.FromSeconds(0.3)) return false;
