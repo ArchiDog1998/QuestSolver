@@ -32,7 +32,7 @@ internal class AetherCurrentSolver : BaseSolver
 
         if (aether == null)
         {
-            Disable();
+            IsEnable = false;
             return;
         }
 
@@ -40,37 +40,25 @@ internal class AetherCurrentSolver : BaseSolver
         {
             var eObj = Svc.Data.GetExcelSheet<EObj>()?.FirstOrDefault(e => e.Data == aether.RowId);
             var level = Svc.Data.GetExcelSheet<Level>()?.FirstOrDefault(e => e.Object == eObj?.RowId);
-            if (level == null)
-            {
-                _points[aether] = dest = null;
-            }
-            else
-            {
-                _points[aether] = dest = new Vector3(level.X, level.Y, level.Z);
-            }
+            _points[aether] = dest = level?.ToLocation();
         }
 
         if (dest == null)
         {
-            Disable();
+            IsEnable = false;
             return;
         }
 
-        if (MoveHelper.MoveTo(dest.Value)) return;
+        if (MoveHelper.MoveTo(dest.Value, Svc.ClientState.TerritoryType)) return;
+        if (MountHelper.InCombat) return;
 
         var obj = Svc.Objects.Where(o => o is not IPlayerCharacter
             && o.IsTargetable && !string.IsNullOrEmpty(o.Name.TextValue))
             .MinBy(i => Vector3.DistanceSquared(Player.Object.Position, i.Position));
 
         if (obj == null) return;
-
-        unsafe
-        {
-            Svc.Log.Info("Aether!");
-
-            var tar = (FFXIVClientStructs.FFXIV.Client.Game.Object.GameObject*)obj?.Address;
-            TargetSystem.Instance()->InteractWithObject(tar);
-        }
+        Svc.Log.Info("Aether!");
+        TargetHelper.Interact(obj);
     }
 
     public override void Enable()

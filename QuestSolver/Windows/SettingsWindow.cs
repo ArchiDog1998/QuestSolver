@@ -6,6 +6,7 @@ namespace QuestSolver.Windows;
 public class SettingsWindow : ConfigWindow
 {
     public override IEnumerable<Searchable> Searchables => Items.OfType<SolverItem>().SelectMany(i => i.Collection);
+    protected override string Kofi => "B0B0IN5DX";
 
     protected override ConfigWindowItem[] GetItems()
     {

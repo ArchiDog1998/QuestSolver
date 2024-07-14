@@ -8,20 +8,21 @@ internal static class MountHelper
     public static bool IsFlying => Svc.Condition[ConditionFlag.InFlight] || Svc.Condition[ConditionFlag.Diving];
     public static bool IsMount => Svc.Condition[ConditionFlag.Mounted];
     public static bool IsJumping => Svc.Condition[ConditionFlag.Jumping];
+    public static bool InCombat => Svc.Condition[ConditionFlag.InCombat];
 
     public static void TryFly()
     {
-        if (!IsMount) return;
+        if (!IsMount || IsFlying) return;
         TryJump();
     }
-    public static void TryMount() => TryGeneralAction(9);
-    public static void TryJump() => TryGeneralAction(2);
+    public static bool TryMount() => !IsMount && TryGeneralAction(9);
+    public static bool TryJump() => TryGeneralAction(2);
     public static void TryDisMount() => TryGeneralAction(23);
 
-    private static void TryGeneralAction(uint generalAction)
+    private static bool TryGeneralAction(uint generalAction)
     {
-        if (!CanUseGeneralAction(generalAction)) return;
-        UseGeneralAction(generalAction);
+        if (!CanUseGeneralAction(generalAction)) return false;
+        return UseGeneralAction(generalAction);
     }
 
     public static unsafe bool CanUseGeneralAction(uint generalAction)
