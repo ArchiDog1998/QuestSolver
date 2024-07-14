@@ -46,7 +46,7 @@ internal static class MoveHelper
     //Todo: Fly..
     public static bool MoveToInMap(Vector3 destination)
     {
-        var close = Vector3.DistanceSquared(Player.Object.Position, destination) < CLOSE_DISTANCE_SQUARE - 0.1f;
+        var close = Vector3.DistanceSquared(Player.Object.Position, destination) < CLOSE_DISTANCE_SQUARE - 0.5f;
 
         if (close)
         {

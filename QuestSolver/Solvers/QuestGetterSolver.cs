@@ -24,6 +24,7 @@ internal class QuestGetterSolver : BaseSolver
 
     protected override void Enable()
     {
+        Plugin.IsEnableSolver<AetherCurrentSolver>(false);
         Svc.Framework.Update += FrameworkUpdate;
     }
 
@@ -87,7 +88,7 @@ internal class QuestGetterSolver : BaseSolver
 
         if (CallbackHelper.Fire(result, true, 3, 4922)) //TODO: This is abnormal!
         {
-            Plugin.EnableSolver<QuestFinishSolver>();
+            Plugin.IsEnableSolver<QuestFinishSolver>();
         }
     }
 }

@@ -6,6 +6,7 @@ using ECommons.DalamudServices;
 using ECommons.GameHelpers;
 using FFXIVClientStructs.FFXIV.Client.Game;
 using QuestSolver.Configuration;
+using QuestSolver.Helpers;
 using QuestSolver.IPC;
 using QuestSolver.Solvers;
 using QuestSolver.Windows;
@@ -44,11 +45,12 @@ internal class Plugin : IDalamudPlugin
         Vnavmesh = new VnavmeshManager();
         CreateWindows();
     }
-    public static void EnableSolver<T>() where T : BaseSolver
+
+    public static void IsEnableSolver<T>(bool isEnable = true) where T : BaseSolver
     {
         var solver = GetSolver<T>();
         if (solver == null) return;
-        solver.IsEnable = true;
+        solver.IsEnable = isEnable;
     }
 
     public static T? GetSolver<T>() where T : BaseSolver

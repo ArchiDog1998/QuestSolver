@@ -92,8 +92,8 @@ internal class QuestFinishSolver : BaseSolver
     QuestItem? _quest = null;
     protected override void Enable()
     {
-        Plugin.EnableSolver<TalkSolver>();
-        Plugin.EnableSolver<YesOrNoSolver>();
+        Plugin.IsEnableSolver<TalkSolver>();
+        Plugin.IsEnableSolver<YesOrNoSolver>();
 
         Svc.Framework.Update += FrameworkUpdate;
     }
@@ -117,6 +117,7 @@ internal class QuestFinishSolver : BaseSolver
 
         if (result?.Quest.RowId == _quest?.Quest.RowId) return;
 
+        Svc.Log.Info("Try to finish " +  result?.Quest.Name.RawString);
         MovedLevels.Clear();
         _quest = result;
     }
@@ -125,6 +126,10 @@ internal class QuestFinishSolver : BaseSolver
     {
         Plugin.Vnavmesh.Stop();
         Svc.Framework.Update -= FrameworkUpdate;
+
+        MovedLevels.Clear();
+        _validTargets.Clear();
+
         _quest = null;
     }
 
@@ -230,6 +235,12 @@ internal class QuestFinishSolver : BaseSolver
                 }
 #endif
             }
+        }
+
+        var invalidItems = _validTargets.Where(i => !i.IsValid());
+        foreach (var item in invalidItems)
+        {
+            _validTargets.Remove(item);
         }
     }
 

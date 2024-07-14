@@ -108,6 +108,8 @@ internal class AetherCurrentSolver : BaseSolver
             .OfType<AetherCurrent>()
             .ToArray();
 
+        Plugin.IsEnableSolver<QuestGetterSolver>(false);
+
         Svc.Framework.Update += FrameworkUpdate;
     }
 
