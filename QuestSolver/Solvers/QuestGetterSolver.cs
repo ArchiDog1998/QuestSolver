@@ -40,22 +40,29 @@ internal class QuestGetterSolver : BaseSolver
 
         if (!Available) return;
 
-        var target = GetTarget();
-        if (target != null)
+        var tar = GetTarget(Range);
+        if (tar != null)
         {
-            if (!MoveHelper.MoveTo(target.Position, 0))
+            if (!MoveHelper.MoveTo(tar.Position, 0))
             {
-                TargetHelper.Interact(target);
+                TargetHelper.Interact(tar);
             }
         }
     }
 
-    private unsafe IGameObject? GetTarget()
+
+    internal static unsafe IGameObject? GetTarget(float range)
     {
         var validTargets = Svc.Objects.Where(item => item.IsTargetable
-            && Vector2.Distance(item.Position.ToVector2(), Player.Object.Position.ToVector2()) <= Range * Range);
+            && Vector2.Distance(item.Position.ToVector2(), Player.Object.Position.ToVector2()) <= range * range);
 
         var tar = validTargets.FirstOrDefault(t => t.Struct()->NamePlateIconId is 71201); //MSQ
+         
+        tar ??= validTargets.FirstOrDefault(t => t.Struct()->NamePlateIconId is 71342); //Side Recycle
+        tar ??= validTargets.FirstOrDefault(t => t.Struct()->NamePlateIconId is 71341); //Side
+
+        tar ??= validTargets.FirstOrDefault(t => t.Struct()->NamePlateIconId is 71222); //Side Recycle
+        tar ??= validTargets.FirstOrDefault(t => t.Struct()->NamePlateIconId is 71221); //Side
 
 #if DEBUG
         if (tar == null)
@@ -73,7 +80,7 @@ internal class QuestGetterSolver : BaseSolver
         return tar;
     }
 
-    private unsafe void ClickQuest()
+    internal static unsafe void ClickQuest()
     {
         var result = (AtkUnitBase*)Svc.GameGui.GetAddonByName("JournalAccept");
         if (result == null || !result->IsVisible) return;

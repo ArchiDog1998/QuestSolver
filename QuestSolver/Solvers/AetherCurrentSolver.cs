@@ -2,7 +2,7 @@
 using Dalamud.Plugin.Services;
 using ECommons.DalamudServices;
 using ECommons.GameHelpers;
-using FFXIVClientStructs.FFXIV.Client.Game.Control;
+using FFXIVClientStructs.FFXIV.Client.Game;
 using FFXIVClientStructs.FFXIV.Client.Game.UI;
 using Lumina.Excel.GeneratedSheets;
 using QuestSolver.Helpers;
@@ -15,7 +15,7 @@ namespace QuestSolver.Solvers;
 internal class AetherCurrentSolver : BaseSolver
 {
     private AetherCurrent[] Aethers = [];
-    private readonly Dictionary<AetherCurrent, Vector3?> _points = [];
+    private readonly Dictionary<AetherCurrent, Level?> _points = [];
 
     public override uint Icon => 64;
 
@@ -40,7 +40,7 @@ internal class AetherCurrentSolver : BaseSolver
         {
             var eObj = Svc.Data.GetExcelSheet<EObj>()?.FirstOrDefault(e => e.Data == aether.RowId);
             var level = Svc.Data.GetExcelSheet<Level>()?.FirstOrDefault(e => e.Object == eObj?.RowId);
-            _points[aether] = dest = level?.ToLocation();
+            _points[aether] = dest = level;
         }
 
         if (dest == null)
@@ -49,7 +49,42 @@ internal class AetherCurrentSolver : BaseSolver
             return;
         }
 
-        if (MoveHelper.MoveTo(dest.Value, Svc.ClientState.TerritoryType)) return;
+        if (aether.Quest.Row == 0)
+        {
+            if (MoveHelper.MoveTo(dest)) return;
+
+            StaticAether(aether);
+        }
+        else if(aether.Quest.Value is not null
+            && aether.Quest.Value.PreviousQuest.All(i => i.Row == 0 || QuestManager.IsQuestComplete(i.Row)))
+        {
+            QuestAether(aether, dest);
+        }
+        else
+        {
+            IsEnable = false;
+        }
+    }
+
+    private static void QuestAether(AetherCurrent aether, Level dest)
+    {
+        if (Plugin.GetSolver<QuestFinishSolver>()?.IsEnable ?? false) return;
+
+        QuestGetterSolver.ClickQuest();
+
+        if (!Available) return;
+
+        if (MoveHelper.MoveTo(dest)) return;
+
+        var tar = QuestGetterSolver.GetTarget(2);
+        if (tar is not null)
+        {
+            TargetHelper.Interact(tar);
+        }
+    }
+
+    private static void StaticAether(AetherCurrent aether)
+    {
         if (MountHelper.InCombat) return;
 
         var obj = Svc.Objects.Where(o => o is not IPlayerCharacter
@@ -71,7 +106,6 @@ internal class AetherCurrentSolver : BaseSolver
             .Where(i => i.Row != 0)
             .Select(i => i.Value)
             .OfType<AetherCurrent>()
-            .Where(i => i.Quest.Row == 0)
             .ToArray();
 
         Svc.Framework.Update += FrameworkUpdate;

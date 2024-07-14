@@ -1,4 +1,5 @@
 ﻿using ECommons.DalamudServices;
+using ECommons.MathHelpers;
 using FFXIVClientStructs.FFXIV.Client.Game;
 using FFXIVClientStructs.FFXIV.Client.Game.UI;
 using Lumina.Excel.GeneratedSheets;
@@ -36,7 +37,7 @@ internal class TeleportHelper
         {
             var level = i.Level[0].Value;
             if (level == null) return float.MaxValue;
-            return Vector3.DistanceSquared(level.ToLocation(), destination);
+            return Vector2.DistanceSquared(level.ToLocation().ToVector2(), destination.ToVector2());
         });
 
         if (minAethery == null) return false;

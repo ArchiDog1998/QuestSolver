@@ -4,6 +4,7 @@ using ECommons;
 using ECommons.Automation;
 using ECommons.DalamudServices;
 using ECommons.GameHelpers;
+using FFXIVClientStructs.FFXIV.Client.Game;
 using QuestSolver.Configuration;
 using QuestSolver.IPC;
 using QuestSolver.Solvers;
@@ -21,7 +22,7 @@ internal class Plugin : IDalamudPlugin
     public Plugin(IDalamudPluginInterface pluginInterface)
     {
         ECommonsMain.Init(pluginInterface, this);
-        XIVConfigUIMain.Init(pluginInterface, "/quest", "Opens the Quest Solver configuration window.", PluginCommand);
+        XIVConfigUIMain.Init(pluginInterface, "/quest", "Opens the Quest Solver configuration window.\n /quest Cancel to cancel all things.", PluginCommand);
 
 #if DEBUG
         Callback.InstallHook();
@@ -101,6 +102,15 @@ internal class Plugin : IDalamudPlugin
 
     public static void PluginCommand(string str)
     {
+        if (str == "Cancel")
+        {
+            foreach (var entry in _settingsWindow.Items)
+            {
+                if (entry is not SolverItem solver) continue;
+                solver.Solver.IsEnable = false;
+            }
+        }
+
         _settingsWindow.Toggle();
     }
 }

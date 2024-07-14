@@ -98,7 +98,7 @@ internal class QuestFinishSolver : BaseSolver
         Svc.Framework.Update += FrameworkUpdate;
     }
 
-    private unsafe QuestItem? FindQuest()
+    private unsafe void FindQuest()
     {
         List<QuestItem> quests = [];
 
@@ -115,9 +115,10 @@ internal class QuestFinishSolver : BaseSolver
         var result = quests.FirstOrDefault(q => !(q.Quest?.IsRepeatable ?? true))
             ?? quests.FirstOrDefault();
 
-        MovedLevels.Clear();
+        if (result?.Quest.RowId == _quest?.Quest.RowId) return;
 
-        return result;
+        MovedLevels.Clear();
+        _quest = result;
     }
 
     protected override void Disable()
@@ -133,8 +134,9 @@ internal class QuestFinishSolver : BaseSolver
         ClickResult();
 
         if (!Available) return;
+        if (WaitForCombat()) return;
 
-        _quest = FindQuest();
+        FindQuest();
 
         if (_quest == null)
         {
@@ -145,7 +147,7 @@ internal class QuestFinishSolver : BaseSolver
         foreach (var level in _quest.Levels)
         {
             if (MovedLevels.Contains(level.RowId)) continue;
-            if (CalculateOneLevel(level))
+            if (CalculateOneLevel(level, _quest.Quest))
             {
                 MovedLevels.Add(level.RowId);
                 _validTargets.Clear();
@@ -155,6 +157,19 @@ internal class QuestFinishSolver : BaseSolver
         }
     }
 
+    private unsafe bool WaitForCombat()
+    {
+        if (!MountHelper.InCombat) return false;
+
+        foreach (var obj in Svc.Objects)
+        {
+            if (obj is not IBattleChara) continue;
+            if (obj.Struct()->EventId.ContentId is FFXIVClientStructs.FFXIV.Client.Game.Event.EventHandlerType.Quest) return true;
+        }
+
+        return false;
+    }
+
     private readonly HashSet<IGameObject> _validTargets = [];
 
     /// <summary>
@@ -162,11 +177,11 @@ internal class QuestFinishSolver : BaseSolver
     /// </summary>
     /// <param name="level"></param>
     /// <returns>True for next.</returns>
-    private bool CalculateOneLevel(Level level)
+    private bool CalculateOneLevel(Level level, MyQuest quest)
     {
         if (level.IsInSide())
         {
-            FindValidTargets(level);
+            FindValidTargets(level, quest);
 
             if (_validTargets.Count == 0) return true;
 
@@ -184,10 +199,9 @@ internal class QuestFinishSolver : BaseSolver
         return false;
     }
 
-    private void FindValidTargets(Level level)
+    private void FindValidTargets(Level level, MyQuest quest)
     {
-        var eobjs = Svc.Data.GetExcelSheet<EObjName>();
-        var name = eobjs?.GetRow(2000009)?.Singular.RawString;
+        var eobjs = Svc.Data.GetExcelSheet<EObj>();
 
         foreach (var item in Svc.Objects)
         {
@@ -199,12 +213,13 @@ internal class QuestFinishSolver : BaseSolver
                 var icon = item.Struct()->NamePlateIconId;
 
                 if (icon is 71203 or 71205 //MSQ
+                    or 71343 or 71345 // Important
+                    or 71223 or 71225 // Side
                     )
                 {
                     _validTargets.Add(item);
                 }
-                else if (name != null &&
-                    eobjs?.GetRow(item.DataId)?.Singular.RawString == name)
+                else if (eobjs?.GetRow(item.DataId)?.Data == quest.RowId)
                 {
                     _validTargets.Add(item);
                 }

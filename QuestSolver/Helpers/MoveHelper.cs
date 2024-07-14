@@ -9,6 +9,8 @@ using System.Numerics;
 namespace QuestSolver.Helpers;
 internal static class MoveHelper
 {
+    internal const float CLOSE_DISTANCE_SQUARE = 3;
+
     private static Vector3 lastPos = default;
     private static DateTime stopTime = DateTime.Now;
 
@@ -44,13 +46,25 @@ internal static class MoveHelper
     //Todo: Fly..
     public static bool MoveToInMap(Vector3 destination)
     {
-        if (Plugin.Vnavmesh.IsRunning() && !Plugin.Vnavmesh.PathfindInProgress())
+        var close = Vector3.DistanceSquared(Player.Object.Position, destination) < CLOSE_DISTANCE_SQUARE - 0.1f;
+
+        if (close)
+        {
+            Plugin.Vnavmesh.Stop();
+
+            if (MountHelper.IsMount && MountHelper.InCombat)
+            {
+                MountHelper.TryDisMount();
+                return true;
+            }
+        }
+        else if (Plugin.Vnavmesh.IsRunning() && !Plugin.Vnavmesh.PathfindInProgress())
         {
             var dis = Vector3.DistanceSquared(Player.Object.Position, lastPos);
             if (dis < 0.001 && DateTime.Now - stopTime > TimeSpan.FromSeconds(3))
             {
                 //TODO: reduce jump!
-                MountHelper.TryJump();
+                //MountHelper.TryJump();
 
                 //Re calculate.
                 Plugin.Vnavmesh.Stop();
@@ -60,7 +74,7 @@ internal static class MoveHelper
             return true;
         }
 
-        if (Vector3.DistanceSquared(Player.Object.Position, destination) > 1)
+        if (!close)
         {
             if (!MountHelper.TryMount())
             {
@@ -72,10 +86,6 @@ internal static class MoveHelper
                 }
             }
             return true;
-        }
-        else if (MountHelper.IsMount && MountHelper.InCombat)
-        {
-            MountHelper.TryDisMount();
         }
 
         return false;
@@ -98,6 +108,6 @@ internal static class MoveHelper
     }
     public static bool IsInSide(this Level level, Vector3 position)
     {
-        return Vector2.DistanceSquared(level.ToLocation().ToVector2(), position.ToVector2()) <= level.Radius * level.Radius;
+        return Vector2.DistanceSquared(level.ToLocation().ToVector2(), position.ToVector2()) <= Math.Max(CLOSE_DISTANCE_SQUARE, level.Radius * level.Radius);
     }
 }
