@@ -3,6 +3,7 @@ using ECommons.Automation;
 using ECommons.DalamudServices;
 using FFXIVClientStructs.FFXIV.Component.GUI;
 using QuestSolver.Data;
+using QuestSolver.Helpers;
 using System.ComponentModel;
 using XIVConfigUI.Attributes;
 
@@ -29,12 +30,12 @@ internal class TalkSolver : BaseSolver
         _cutSceneTalkDelay = new(() => CutSceneTalkDelay);
     }
 
-    public override void Enable()
+    protected override void Enable()
     {
         Svc.Framework.Update += FrameworkUpdate;
     }
 
-    public override void Disable()
+    protected override void Disable()
     {
         Svc.Framework.Update -= FrameworkUpdate;
     }
@@ -45,8 +46,10 @@ internal class TalkSolver : BaseSolver
 
         if (_talkDelay.Delay(talk->IsVisible))
         {
-            Svc.Log.Info("Close Talk");
-            Callback.Fire(talk, true);
+            if (CallbackHelper.Fire(talk, true))
+            {
+                Svc.Log.Info("Close Talk");
+            }
         }
 
         talk = (AtkUnitBase*)Svc.GameGui.GetAddonByName("CutSceneSelectString");
@@ -55,8 +58,10 @@ internal class TalkSolver : BaseSolver
 
         if (_cutSceneTalkDelay.Delay(talk->IsVisible))
         {
-            Svc.Log.Info("Close CutScene Talk");
-            Callback.Fire(talk, true, 0);
+            if (CallbackHelper.Fire(talk, true, 0))
+            {
+                Svc.Log.Info("Close CutScene Talk");
+            }
         }
     }
 }

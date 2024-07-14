@@ -1,8 +1,8 @@
 ﻿using Dalamud.Game.ClientState.Objects.Types;
 using Dalamud.Plugin.Services;
-using ECommons.Automation;
 using ECommons.DalamudServices;
 using ECommons.GameFunctions;
+using ECommons.GameHelpers;
 using FFXIVClientStructs.FFXIV.Application.Network.WorkDefinitions;
 using FFXIVClientStructs.FFXIV.Client.Game;
 using FFXIVClientStructs.FFXIV.Component.GUI;
@@ -12,6 +12,7 @@ using Lumina.Excel;
 using Lumina.Excel.GeneratedSheets;
 using QuestSolver.Helpers;
 using System.ComponentModel;
+using System.Numerics;
 
 namespace QuestSolver.Solvers;
 
@@ -35,7 +36,23 @@ internal class MyQuest : Quest
 internal unsafe class QuestItem(int index)
 {
     public QuestWork Work => QuestManager.Instance()->NormalQuests[index];
-    public byte Sequence => (byte)Array.IndexOf(Quest!.ToDoCompleteSeq, Work.Sequence);
+    public byte[] Sequences
+    {
+        get
+        {
+            var result = new List<byte>();
+            var data = Quest!.ToDoCompleteSeq;
+            for (int i = 0; i < data.Length; i++)
+            {
+                var item = data[i];
+                if (item == Work.Sequence)
+                {
+                    result.Add((byte)i);
+                }
+            }
+            return [.. result];
+        }
+    }
     public MyQuest Quest { get; } = Svc.Data.GetExcelSheet<MyQuest>()?.GetRow((uint)QuestManager.Instance()->NormalQuests[index].QuestId | 0x10000)!;
     public Level[] Levels
     {
@@ -46,15 +63,18 @@ internal unsafe class QuestItem(int index)
 
             var result = new List<Level>();
 
-            for (int i = 0; i < 8; i++)
+            foreach (var sequence in Sequences)
             {
-                var id = Quest.ToDoLocation[Sequence, i];
-                if (id == 0) continue;
+                for (int i = 0; i < 8; i++)
+                {
+                    var id = Quest.ToDoLocation[sequence, i];
+                    if (id == 0) continue;
 
-                var item = data.GetRow(id);
-                if (item == null) continue;
+                    var item = data.GetRow(id);
+                    if (item == null) continue;
 
-                result.Add(item);
+                    result.Add(item);
+                }
             }
 
             return [.. result];
@@ -70,9 +90,11 @@ internal class QuestFinishSolver : BaseSolver
     private readonly List<uint> MovedLevels = [];
 
     QuestItem? _quest = null;
-    public override void Enable()
+    protected override void Enable()
     {
-        _quest ??= FindQuest();
+        Plugin.EnableSolver<TalkSolver>();
+        Plugin.EnableSolver<YesOrNoSolver>();
+
         Svc.Framework.Update += FrameworkUpdate;
     }
 
@@ -95,13 +117,10 @@ internal class QuestFinishSolver : BaseSolver
 
         MovedLevels.Clear();
 
-        Svc.Log.Info("Do Quest: " + result.Quest.Name);
-        Svc.Log.Error("Queue: " + result.Work.Sequence + " -> " + result.Sequence);
-
         return result;
     }
 
-    public override void Disable()
+    protected override void Disable()
     {
         Plugin.Vnavmesh.Stop();
         Svc.Framework.Update -= FrameworkUpdate;
@@ -110,12 +129,14 @@ internal class QuestFinishSolver : BaseSolver
 
     private void FrameworkUpdate(IFramework framework)
     {
+        CheckItemDetail();
         ClickResult();
 
         if (!Available) return;
 
-        if (_quest == null
-            || _quest.Levels == null)
+        _quest = FindQuest();
+
+        if (_quest == null)
         {
             IsEnable = false;
             return;
@@ -127,11 +148,14 @@ internal class QuestFinishSolver : BaseSolver
             if (CalculateOneLevel(level))
             {
                 MovedLevels.Add(level.RowId);
+                _validTargets.Clear();
                 Svc.Log.Info("Finished Level " + level.RowId);
             }
             break;
         }
     }
+
+    private readonly HashSet<IGameObject> _validTargets = [];
 
     /// <summary>
     /// 
@@ -142,14 +166,15 @@ internal class QuestFinishSolver : BaseSolver
     {
         if (level.IsInSide())
         {
-            var objects = FindValidTargets(level);
+            FindValidTargets(level);
 
-            if (objects == null || objects.Count == 0) return true;
+            if (_validTargets.Count == 0) return true;
 
-            var obj = objects[0];
+            var obj = _validTargets.MinBy(t => Vector3.DistanceSquared(t.Position, Player.Object.Position))!;
             if (!MoveHelper.MoveTo(obj.Position, 0))
             {
                 TargetHelper.Interact(obj);
+                _validTargets.Remove(obj);
             }
         }
         else
@@ -159,9 +184,11 @@ internal class QuestFinishSolver : BaseSolver
         return false;
     }
 
-    private List<IGameObject> FindValidTargets(Level level)
+    private void FindValidTargets(Level level)
     {
-        var validTargets = new List<IGameObject>();
+        var eobjs = Svc.Data.GetExcelSheet<EObjName>();
+        var name = eobjs?.GetRow(2000009)?.Singular.RawString;
+
         foreach (var item in Svc.Objects)
         {
             if (!level.IsInSide(item)) continue;
@@ -169,13 +196,26 @@ internal class QuestFinishSolver : BaseSolver
 
             unsafe
             {
-                if (item.Struct()->EventState is 7)
+                var icon = item.Struct()->NamePlateIconId;
+
+                if (icon is 71203 or 71205 //MSQ
+                    )
                 {
-                    validTargets.Add(item);
+                    _validTargets.Add(item);
                 }
+                else if (name != null &&
+                    eobjs?.GetRow(item.DataId)?.Singular.RawString == name)
+                {
+                    _validTargets.Add(item);
+                }
+#if DEBUG
+                else if (icon != 0)
+                {
+                    Svc.Log.Error($"{item.Name} Name Place {icon}");
+                }
+#endif
             }
         }
-        return validTargets;
     }
 
     private unsafe void ClickResult()
@@ -183,6 +223,17 @@ internal class QuestFinishSolver : BaseSolver
         var result = (AtkUnitBase*)Svc.GameGui.GetAddonByName("JournalResult");
         if (result == null || !result->IsVisible) return;
 
-        Callback.Fire(result, true, 0);
+        if (CallbackHelper.Fire(result, true, 0))
+        {
+            IsEnable = false;
+        }
+    }
+
+    private unsafe void CheckItemDetail()
+    {
+        var request = (AtkUnitBase*)Svc.GameGui.GetAddonByName("Request");
+        if (request == null || !request->IsVisible) return;
+
+        CallbackHelper.Fire(request, true, 0);
     }
 }

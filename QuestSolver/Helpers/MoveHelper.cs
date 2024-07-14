@@ -14,14 +14,20 @@ internal static class MoveHelper
 
     public static bool MoveTo(Level level)
     {
-        return MoveTo(level.ToLocation(), level.Territory.Row);
+        var destination = level.ToLocation();
+
+        if (level.Radius > 10)
+        {
+            destination = Plugin.Vnavmesh.PointOnFloor(destination, false, 1) ?? destination;
+        }
+        return MoveTo(destination, level.Territory.Row);
     }
 
     public static bool MoveTo(Vector3 destination, uint territoryId)
     {
         if (territoryId != 0 && territoryId != Svc.ClientState.TerritoryType)
         {
-            return Teleport(destination, territoryId);
+            return TeleportHelper.Teleport(destination, territoryId);
         }
 
 #if DEBUG
@@ -35,12 +41,6 @@ internal static class MoveHelper
         return MoveToInMap(destination);
     }
 
-    //Todo: Teleport.
-    private static bool Teleport(Vector3 destination, uint territoryId)
-    {
-        return true;
-    }
-
     //Todo: Fly..
     public static bool MoveToInMap(Vector3 destination)
     {
@@ -49,7 +49,8 @@ internal static class MoveHelper
             var dis = Vector3.DistanceSquared(Player.Object.Position, lastPos);
             if (dis < 0.001 && DateTime.Now - stopTime > TimeSpan.FromSeconds(3))
             {
-                //MountHelper.TryJump();
+                //TODO: reduce jump!
+                MountHelper.TryJump();
 
                 //Re calculate.
                 Plugin.Vnavmesh.Stop();
@@ -65,6 +66,8 @@ internal static class MoveHelper
             {
                 if (!Plugin.Vnavmesh.PathfindInProgress())
                 {
+                    var random = new Random();
+                    destination += new Vector3((float)random.NextDouble(), 0, (float)random.NextDouble());
                     Plugin.Vnavmesh.PathfindAndMoveTo(destination, false);
                 }
             }
@@ -95,6 +98,6 @@ internal static class MoveHelper
     }
     public static bool IsInSide(this Level level, Vector3 position)
     {
-        return Vector2.Distance(level.ToLocation().ToVector2(), position.ToVector2()) <= level.Radius;
+        return Vector2.DistanceSquared(level.ToLocation().ToVector2(), position.ToVector2()) <= level.Radius * level.Radius;
     }
 }

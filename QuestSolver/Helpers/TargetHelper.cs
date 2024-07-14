@@ -7,8 +7,13 @@ namespace QuestSolver.Helpers;
 
 internal static class TargetHelper
 {
+    private static DateTime _lastCall = DateTime.Now;
+
     public unsafe static ulong Interact(IGameObject obj)
     {
+        if (DateTime.Now - _lastCall < TimeSpan.FromSeconds(1)) return 1;
+        _lastCall = DateTime.Now;
+
         Svc.Log.Info("Interact with " + obj.Name);
         return TargetSystem.Instance()->InteractWithObject(obj.Struct());
     }

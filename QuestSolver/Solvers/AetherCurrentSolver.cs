@@ -61,7 +61,7 @@ internal class AetherCurrentSolver : BaseSolver
         TargetHelper.Interact(obj);
     }
 
-    public override void Enable()
+    protected override void Enable()
     {
         var set = Svc.Data.GetExcelSheet<AetherCurrentCompFlgSet>()?.FirstOrDefault(s => s.Territory.Row == Svc.ClientState.TerritoryType);
 
@@ -77,7 +77,7 @@ internal class AetherCurrentSolver : BaseSolver
         Svc.Framework.Update += FrameworkUpdate;
     }
 
-    public override void Disable()
+    protected override void Disable()
     {
         Plugin.Vnavmesh.Stop();
         Svc.Framework.Update -= FrameworkUpdate;

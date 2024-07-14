@@ -1,5 +1,4 @@
 ﻿using Dalamud.Plugin.Services;
-using ECommons.Automation;
 using ECommons.DalamudServices;
 using FFXIVClientStructs.FFXIV.Component.GUI;
 using QuestSolver.Helpers;
@@ -12,12 +11,12 @@ internal class YesOrNoSolver : DelaySolver
 {
     public override uint Icon => 45;
 
-    public override void Enable()
+    protected override void Enable()
     {
         Svc.Framework.Update += FrameworkUpdate;
     }
 
-    public override void Disable()
+    protected override void Disable()
     {
         Svc.Framework.Update -= FrameworkUpdate;
     }
@@ -32,8 +31,10 @@ internal class YesOrNoSolver : DelaySolver
 
         if (_delay.Delay(yesOrNo->IsVisible))
         {
-            Svc.Log.Info("Click Yes");
-            Callback.Fire(yesOrNo, true, 0);
+            if (CallbackHelper.Fire(yesOrNo, true, 0))
+            {
+                Svc.Log.Info("Click Yes");
+            }
         }
     }
 }

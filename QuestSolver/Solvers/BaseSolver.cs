@@ -47,6 +47,6 @@ internal abstract class BaseSolver
     }
 
     public abstract uint Icon { get; }
-    public abstract void Enable();
-    public abstract void Disable();
+    protected abstract void Enable();
+    protected abstract void Disable();
 }

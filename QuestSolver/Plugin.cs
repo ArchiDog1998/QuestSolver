@@ -6,6 +6,7 @@ using ECommons.DalamudServices;
 using ECommons.GameHelpers;
 using QuestSolver.Configuration;
 using QuestSolver.IPC;
+using QuestSolver.Solvers;
 using QuestSolver.Windows;
 using XIVConfigUI;
 
@@ -42,6 +43,17 @@ internal class Plugin : IDalamudPlugin
         Vnavmesh = new VnavmeshManager();
         CreateWindows();
     }
+    public static void EnableSolver<T>() where T : BaseSolver
+    {
+        var solver = GetSolver<T>();
+        if (solver == null) return;
+        solver.IsEnable = true;
+    }
+
+    public static T? GetSolver<T>() where T : BaseSolver
+    {
+        return _settingsWindow.Items.OfType<SolverItem>().Select(i => i.Solver).OfType<T>().FirstOrDefault();
+    }
 
     public void Dispose()
     {
@@ -49,7 +61,7 @@ internal class Plugin : IDalamudPlugin
 
         foreach (var item in _settingsWindow.Items.OfType<SolverItem>())
         {
-            item.Solver.Disable();
+            item.Solver.IsEnable = false;
         }
 
         _windowSystem.RemoveAllWindows();
