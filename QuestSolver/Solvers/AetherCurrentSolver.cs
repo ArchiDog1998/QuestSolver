@@ -34,7 +34,6 @@ internal class AetherCurrentSolver : BaseSolver
             IsEnable = false;
             return;
         }
-
         var isStatic = aether.Quest.Row == 0;
 
         if (!_points.TryGetValue(aether, out var dest))
@@ -60,6 +59,7 @@ internal class AetherCurrentSolver : BaseSolver
         if (isStatic)
         {
             if (!Available) return;
+            if (MountHelper.InCombat) return;
 
             if (MoveHelper.MoveTo(dest)) return;
 
@@ -93,8 +93,6 @@ internal class AetherCurrentSolver : BaseSolver
 
     private static void StaticAether(AetherCurrent aether)
     {
-        if (MountHelper.InCombat) return;
-
         var obj = Svc.Objects.Where(o => o is not IPlayerCharacter
             && o.IsTargetable && !string.IsNullOrEmpty(o.Name.TextValue))
             .MinBy(i => Vector3.DistanceSquared(Player.Object.Position, i.Position));

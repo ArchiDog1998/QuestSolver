@@ -8,6 +8,7 @@ using ECommons.GameFunctions;
 using ECommons.GameHelpers;
 using FFXIVClientStructs.FFXIV.Application.Network.WorkDefinitions;
 using FFXIVClientStructs.FFXIV.Client.Game;
+using FFXIVClientStructs.FFXIV.Client.Game.Event;
 using FFXIVClientStructs.FFXIV.Component.GUI;
 using Lumina;
 using Lumina.Data;
@@ -15,6 +16,7 @@ using Lumina.Excel;
 using Lumina.Excel.GeneratedSheets;
 using QuestSolver.Helpers;
 using System.ComponentModel;
+using System.Linq;
 using System.Numerics;
 
 namespace QuestSolver.Solvers;
@@ -58,20 +60,28 @@ internal unsafe class QuestItem(int index)
         }
     }
     public MyQuest Quest { get; } = Svc.Data.GetExcelSheet<MyQuest>()?.GetRow((uint)QuestManager.Instance()->NormalQuests[index].QuestId | 0x10000)!;
-    public Level[] Levels
+    public unsafe Level[] Levels
     {
         get
         {
             var data = Svc.Data.GetExcelSheet<Level>();
             if (data == null) return [];
-
             var result = new List<Level>();
+
+            //var questEvent = (QuestEventHandler*)EventFramework.Instance()->GetEventHandlerById(Quest.RowId);
 
             foreach (var sequence in Sequences)
             {
-                for (int i = 0; i < 8; i++)
+                for (byte i = 0; i < 8; i++)
                 {
                     var id = Quest.ToDoLocation[sequence, i];
+
+                    //if (questEvent->IsTodoChecked(Player.BattleChara, i))
+                    //{
+                    //    Svc.Log.Info("Finished Todo");
+                    //    continue;
+                    //}
+
                     if (id == 0) continue;
 
                     var item = data.GetRow(id);
@@ -125,7 +135,7 @@ internal class QuestFinishSolver : BaseSolver
 
         if (result?.Quest.RowId == _quest?.Quest.RowId) return;
 
-        Svc.Log.Info("Try to finish " +  result?.Quest.Name.RawString);
+        Svc.Log.Info("Try to finish " +  result?.Quest.Name.RawString + " " + result?.Quest.RowId);
         MovedLevels.Clear();
         _quest = result;
         _validTargets.Clear();
@@ -149,6 +159,7 @@ internal class QuestFinishSolver : BaseSolver
     {
         if (!Available) return;
         if (WaitForCombat()) return;
+        if (Svc.Condition[Dalamud.Game.ClientState.Conditions.ConditionFlag.BoundByDuty]) return;
 
         FindQuest();
 
@@ -178,7 +189,7 @@ internal class QuestFinishSolver : BaseSolver
         foreach (var obj in Svc.Objects)
         {
             if (obj is not IBattleChara) continue;
-            if (obj.Struct()->EventId.ContentId is FFXIVClientStructs.FFXIV.Client.Game.Event.EventHandlerType.Quest) return true;
+            if (obj.Struct()->EventId.ContentId is EventHandlerType.Quest) return true;
         }
 
         return false;
@@ -201,10 +212,14 @@ internal class QuestFinishSolver : BaseSolver
 
             var obj = _validTargets.MinBy(t => Vector3.DistanceSquared(t.Position, Player.Object.Position))!;
 
-            Svc.Log.Info("Plan to talk with " + obj.Name);
+            //Svc.Log.Info(string.Join(", ", quest.sc.ToArray()));
 
+            //Svc.Log.Info("Plan to talk with " + obj.Name + quest.ScriptInstruction[_quest.Work.Sequence].RawString);
+
+           
             if (!MoveHelper.MoveTo(obj.Position, 0))
             {
+                //TODO: Emote fix!
                 TargetHelper.Interact(obj);
                 //_validTargets.Remove(obj); //No Need!
             }
@@ -220,16 +235,19 @@ internal class QuestFinishSolver : BaseSolver
     {
         var eobjs = Svc.Data.GetExcelSheet<EObj>();
 
-        foreach (var item in Svc.Objects)
+        var objs = Svc.Objects.Union(_validTargets).ToArray();
+        _validTargets.Clear();
+        foreach (var item in objs)
         {
             if (!level.IsInSide(item)) continue;
             if (!item.IsTargetable) continue;
+            if (!item.IsValid()) continue;
 
             unsafe
             {
                 var icon = item.Struct()->NamePlateIconId;
 
-                if (icon is 71203 or 71205 //MSQ
+                if (icon is 71203 or 71205 or 70983//MSQ
                     or 71343 or 71345 // Important
                     or 71223 or 71225 // Side
                     )
@@ -247,12 +265,6 @@ internal class QuestFinishSolver : BaseSolver
                 }
 #endif
             }
-        }
-
-        var invalidItems = _validTargets.Where(i => !i.IsValid() || !level.IsInSide(i));
-        foreach (var item in invalidItems)
-        {
-            _validTargets.Remove(item);
         }
     }
     private unsafe void OnAddonJournalResult(AddonEvent type, AddonArgs args)

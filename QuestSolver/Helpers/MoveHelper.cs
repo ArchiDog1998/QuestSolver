@@ -20,7 +20,7 @@ internal static class MoveHelper
 
         if (level.Radius > 10)
         {
-            destination = Plugin.Vnavmesh.PointOnFloor(destination, false, 1) ?? destination;
+            destination = Plugin.Vnavmesh.PointOnFloor(destination, false, 5) ?? destination;
         }
         return MoveTo(destination, level.Territory.Row);
     }
@@ -67,11 +67,20 @@ internal static class MoveHelper
             {
                 MountHelper.TryMount();
             }
+
             return true;
         }
-        else if (MountHelper.CanFly && !MountHelper.IsFlying) // Fly
+        else if (MountHelper.IsMount && MountHelper.CanFly && !MountHelper.IsFlying) // Fly
         {
-            MountHelper.TryFly();
+            if (Plugin.Vnavmesh.IsRunning())
+            {
+                Plugin.Vnavmesh.Stop();
+            }
+            else
+            {
+                MountHelper.TryFly();
+            }
+
             return true;
         }
         else if (Plugin.Vnavmesh.IsRunning()) //Re calculate.
@@ -79,7 +88,6 @@ internal static class MoveHelper
             var dis = Vector3.DistanceSquared(Player.Object.Position, lastPos);
             if (dis < 0.001 && DateTime.Now - stopTime > TimeSpan.FromSeconds(3))
             {
-                //TODO: reduce jump!
                 MountHelper.TryJump();
 
                 //Re calculate.
@@ -100,7 +108,7 @@ internal static class MoveHelper
             {
                 var random = new Random();
                 destination += new Vector3((float)random.NextDouble(), 0, (float)random.NextDouble());
-                Plugin.Vnavmesh.PathfindAndMoveTo(destination, false);
+                Plugin.Vnavmesh.PathfindAndMoveTo(destination, MountHelper.IsFlying);
             }
             return true;
         }

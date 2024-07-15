@@ -18,7 +18,7 @@ internal static class MountHelper
     {
         if (!IsMount || IsFlying) return;
 
-        if (DateTime.Now - _jumpedTime > TimeSpan.FromSeconds(1)) //Can't Fly
+        if (DateTime.Now - _jumpedTime > TimeSpan.FromSeconds(0.5f)) //Can't Fly
         {
             Svc.Log.Info("Can't Fly at " + Svc.ClientState.TerritoryType);
             _cantFly.Add(Svc.ClientState.TerritoryType);
@@ -58,7 +58,11 @@ internal static class MountHelper
         }
     }
 
-    public static bool TryJump() => TryGeneralAction(2);
+    public static bool TryJump()
+    {
+        if(IsJumping) return false;
+        return TryGeneralAction(2);
+    }
     public static void TryDisMount() => UseAction(ActionType.GeneralAction, 23);
 
     private static bool TryGeneralAction(uint generalAction)

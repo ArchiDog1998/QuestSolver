@@ -40,7 +40,12 @@ internal class TeleportHelper
             return Vector2.DistanceSquared(level.ToLocation().ToVector2(), destination.ToVector2());
         }); //TODO: it seems that it is the wrong way to find the closest.
 
-        if (minAethery == null) return false;
+        if (minAethery == null)
+        {
+            //TODO, hwo to deal with the one without aethery?
+            Svc.Log.Error("Don't know how to teleport to " + territoryId);
+            return false;
+        }
         //MapUtil.WorldToMap()
         return Teleport(minAethery);
     }
@@ -49,7 +54,7 @@ internal class TeleportHelper
 
     private static unsafe bool Teleport(Aetheryte aetheryte)
     {
-        if (DateTime.Now - _lastCall < TimeSpan.FromSeconds(0.3)) return false;
+        if (DateTime.Now - _lastCall < TimeSpan.FromSeconds(6)) return false;
         _lastCall = DateTime.Now;
 
         if (ActionManager.Instance()->GetActionStatus(ActionType.Action, 5) != 0)

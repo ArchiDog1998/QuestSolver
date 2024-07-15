@@ -48,6 +48,7 @@ internal class QuestGetterSolver : BaseSolver
         if (!Available) return;
 
         var tar = GetTarget(Range);
+
         if (tar != null)
         {
             if (!MoveHelper.MoveTo(tar.Position, 0))
