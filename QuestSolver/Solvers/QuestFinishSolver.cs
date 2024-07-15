@@ -16,7 +16,6 @@ using Lumina.Excel;
 using Lumina.Excel.GeneratedSheets;
 using QuestSolver.Helpers;
 using System.ComponentModel;
-using System.Linq;
 using System.Numerics;
 
 namespace QuestSolver.Solvers;
@@ -110,8 +109,8 @@ internal class QuestFinishSolver : BaseSolver
         Plugin.IsEnableSolver<YesOrNoSolver>();
 
         Svc.AddonLifecycle.RegisterListener(AddonEvent.PostSetup, "JournalResult", OnAddonJournalResult);
-        Svc.AddonLifecycle.RegisterListener(AddonEvent.PostDraw, "JournalResult", OnAddonJournalResult);
-        Svc.AddonLifecycle.RegisterListener(AddonEvent.PostDraw, ["Request", "SelectString"], OnAddonRequest);
+        //Svc.AddonLifecycle.RegisterListener(AddonEvent.PostDraw, "JournalResult", OnAddonJournalResult);
+        Svc.AddonLifecycle.RegisterListener(AddonEvent.PostSetup, ["Request", "SelectString"], OnAddonRequest);
 
         Svc.Framework.Update += FrameworkUpdate;
     }

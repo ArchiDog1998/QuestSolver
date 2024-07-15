@@ -37,6 +37,7 @@ internal class QuestGetterSolver : BaseSolver
     protected override void Disable()
     {
         Svc.AddonLifecycle.UnregisterListener(OnAddonJournalAccept);
+        Plugin.Vnavmesh.Stop();
 
         Svc.Framework.Update -= FrameworkUpdate;
     }

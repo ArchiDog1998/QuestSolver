@@ -20,7 +20,9 @@ internal static class MoveHelper
 
         if (level.Radius > 10)
         {
-            destination = Plugin.Vnavmesh.PointOnFloor(destination, false, 5) ?? destination;
+            var newDest = Plugin.Vnavmesh.PointOnFloor(destination + Vector3.UnitY * 1024, false, 5) ?? destination;
+            Svc.Log.Info($"Remap {destination} to {newDest}");
+            destination = newDest;
         }
         return MoveTo(destination, level.Territory.Row);
     }
@@ -106,6 +108,7 @@ internal static class MoveHelper
         {
             if (!Plugin.Vnavmesh.PathfindInProgress())
             {
+                Svc.Log.Info("Calculating Is Fly " + MountHelper.IsFlying);
                 var random = new Random();
                 destination += new Vector3((float)random.NextDouble(), 0, (float)random.NextDouble());
                 Plugin.Vnavmesh.PathfindAndMoveTo(destination, MountHelper.IsFlying);

@@ -33,5 +33,6 @@
   "QuestSolver.Solvers.TalkSolverName.TalkDelay": "Character per second",
   "QuestSolver.Solvers.TalkSolverName.CutSceneTalkDelay": "CutScene Talk Delay",
   "QuestSolver.Solvers.QuestGetterSolver": "Quest Getter",
-  "QuestSolver.Solvers.QuestGetterSolverName.Range": "Search Range"
+  "QuestSolver.Solvers.QuestGetterSolverName.Range": "Search Range",
+  "QuestSolver.Solvers.SkipCutscene": "Skip Cutscene"
 }
