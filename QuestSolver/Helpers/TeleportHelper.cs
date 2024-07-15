@@ -38,7 +38,7 @@ internal class TeleportHelper
             var level = i.Level[0].Value;
             if (level == null) return float.MaxValue;
             return Vector2.DistanceSquared(level.ToLocation().ToVector2(), destination.ToVector2());
-        });
+        }); //TODO: it seems that it is the wrong way to find the closest.
 
         if (minAethery == null) return false;
         //MapUtil.WorldToMap()

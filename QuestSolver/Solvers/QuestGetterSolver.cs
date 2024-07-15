@@ -23,7 +23,7 @@ internal class QuestGetterSolver : BaseSolver
 
     [Range(1, 50, ConfigUnitType.Yalms, 0.1f)]
     [UI("Search Range", Order = 1)]
-    public float Range { get; set; } = 10;
+    public float Range { get => Plugin.Settings.QuestGetterRange; set  => Plugin.Settings.QuestGetterRange =value; }
 
     protected override void Enable()
     {

@@ -17,11 +17,11 @@ internal class TalkSolver : BaseSolver
 
     [Range(1, 1000, ConfigUnitType.None, 0.1f)]
     [UI("Character per second", Order = 1)]
-    public float TalkDelay { get; set; } = 10;
+    public float TalkDelay { get => Plugin.Settings.TalkSolverTalkDelay; set => Plugin.Settings.TalkSolverTalkDelay = value; }
 
     [Range(0, 100, ConfigUnitType.Seconds)]
     [UI("CutScene Talk Delay", Order = 1)]
-    public float CutSceneTalkDelay { get; set; } = 3;
+    public float CutSceneTalkDelay { get => Plugin.Settings.TalkSolverCutSceneTalkDelay; set => Plugin.Settings.TalkSolverCutSceneTalkDelay = value; }
 
     public override uint Icon => 45;
 

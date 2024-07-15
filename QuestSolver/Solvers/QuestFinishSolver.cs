@@ -200,10 +200,13 @@ internal class QuestFinishSolver : BaseSolver
             if (_validTargets.Count == 0) return true;
 
             var obj = _validTargets.MinBy(t => Vector3.DistanceSquared(t.Position, Player.Object.Position))!;
+
+            Svc.Log.Info("Plan to talk with " + obj.Name);
+
             if (!MoveHelper.MoveTo(obj.Position, 0))
             {
                 TargetHelper.Interact(obj);
-                _validTargets.Remove(obj);
+                //_validTargets.Remove(obj); //No Need!
             }
         }
         else
@@ -246,7 +249,7 @@ internal class QuestFinishSolver : BaseSolver
             }
         }
 
-        var invalidItems = _validTargets.Where(i => !i.IsValid());
+        var invalidItems = _validTargets.Where(i => !i.IsValid() || !level.IsInSide(i));
         foreach (var item in invalidItems)
         {
             _validTargets.Remove(item);

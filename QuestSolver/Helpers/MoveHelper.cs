@@ -43,28 +43,44 @@ internal static class MoveHelper
         return MoveToInMap(destination);
     }
 
-    //Todo: Fly..
     public static bool MoveToInMap(Vector3 destination)
     {
         var close = Vector3.DistanceSquared(Player.Object.Position, destination) < CLOSE_DISTANCE_SQUARE - 0.5f;
 
-        if (close)
+        if (close) //Nearby!
         {
             Plugin.Vnavmesh.Stop();
 
-            if (MountHelper.IsMount && MountHelper.InCombat)
+            if (MountHelper.IsMount && MountHelper.InCombat) // Go for combat!
             {
                 MountHelper.TryDisMount();
                 return true;
             }
         }
-        else if (Plugin.Vnavmesh.IsRunning() && !Plugin.Vnavmesh.PathfindInProgress())
+        else if(MountHelper.CanMount && !MountHelper.IsMount) // Mount
+        {
+            if (Plugin.Vnavmesh.IsRunning())
+            {
+                Plugin.Vnavmesh.Stop();
+            }
+            else
+            {
+                MountHelper.TryMount();
+            }
+            return true;
+        }
+        else if (MountHelper.CanFly && !MountHelper.IsFlying) // Fly
+        {
+            MountHelper.TryFly();
+            return true;
+        }
+        else if (Plugin.Vnavmesh.IsRunning()) //Re calculate.
         {
             var dis = Vector3.DistanceSquared(Player.Object.Position, lastPos);
             if (dis < 0.001 && DateTime.Now - stopTime > TimeSpan.FromSeconds(3))
             {
                 //TODO: reduce jump!
-                //MountHelper.TryJump();
+                MountHelper.TryJump();
 
                 //Re calculate.
                 Plugin.Vnavmesh.Stop();
@@ -73,17 +89,18 @@ internal static class MoveHelper
             lastPos = Player.Object.Position;
             return true;
         }
+        else
+        {
+            stopTime = DateTime.Now;
+        }
 
         if (!close)
         {
-            if (!MountHelper.TryMount())
+            if (!Plugin.Vnavmesh.PathfindInProgress())
             {
-                if (!Plugin.Vnavmesh.PathfindInProgress())
-                {
-                    var random = new Random();
-                    destination += new Vector3((float)random.NextDouble(), 0, (float)random.NextDouble());
-                    Plugin.Vnavmesh.PathfindAndMoveTo(destination, false);
-                }
+                var random = new Random();
+                destination += new Vector3((float)random.NextDouble(), 0, (float)random.NextDouble());
+                Plugin.Vnavmesh.PathfindAndMoveTo(destination, false);
             }
             return true;
         }

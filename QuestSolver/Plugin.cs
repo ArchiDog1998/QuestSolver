@@ -37,6 +37,8 @@ internal class Plugin : IDalamudPlugin
         Svc.PluginInterface.UiBuilder.OpenConfigUi += OpenConfigUi;
         Svc.PluginInterface.UiBuilder.OpenMainUi += OpenConfigUi;
 
+        MountHelper.Init();
+
         try
         {
             Settings = pluginInterface.GetPluginConfig() as Settings ?? new Settings();
@@ -72,6 +74,8 @@ internal class Plugin : IDalamudPlugin
         }
 
         _windowSystem.RemoveAllWindows();
+
+        MountHelper.Dispose();
 
 #if DEBUG
         Callback.UninstallHook();
