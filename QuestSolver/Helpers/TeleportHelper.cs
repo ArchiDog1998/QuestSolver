@@ -33,12 +33,27 @@ internal class TeleportHelper
 
         var aetheries = ValidAetherytes.Where(a => a.Territory.Row == territoryId);
 
+        var map = Svc.Data.GetExcelSheet<TerritoryType>()?.GetRow(territoryId)?.Map.Value;
+
         var minAethery = aetheries.MinBy(i =>
         {
-            var level = i.Level[0].Value;
-            if (level == null) return float.MaxValue;
-            return Vector2.DistanceSquared(level.ToLocation().ToVector2(), destination.ToVector2());
-        }); //TODO: it seems that it is the wrong way to find the closest.
+            Vector2 loc;
+
+            var marker = Svc.Data.GetExcelSheet<MapMarker>()?.FirstOrDefault(m => m.DataType == 3 && m.DataKey == i.RowId);
+
+            if (marker != null && map != null)
+            {
+                loc = MarkerToWorldPosition(map, new(marker.X, marker.Y));
+            }
+            else
+            {
+                var level = i.Level[0].Value;
+                if (level == null) return float.MaxValue;
+                loc = level.ToLocation().ToVector2();
+            }
+
+            return Vector2.DistanceSquared(loc, destination.ToVector2());
+        });
 
         if (minAethery == null)
         {
@@ -48,6 +63,22 @@ internal class TeleportHelper
         }
         //MapUtil.WorldToMap()
         return Teleport(minAethery);
+    }
+
+    /// <summary>
+    /// From https://github.com/una-xiv/umbra/blob/main/Umbra.Game/src/Zone/Marker/ZoneMarkerFactory.cs#L225-L233
+    /// </summary>
+    /// <param name="map"></param>
+    /// <param name="pos"></param>
+    /// <returns></returns>
+    private static Vector2 MarkerToWorldPosition(Lumina.Excel.GeneratedSheets.Map map, Vector2 pos)
+    {
+        Vector2 v = default;
+
+        v.X = ((pos.X - 1024f) / (map.SizeFactor / 100.0f)) - (map.OffsetX * (map.SizeFactor / 100.0f));
+        v.Y = ((pos.Y - 1024f) / (map.SizeFactor / 100.0f)) - (map.OffsetY * (map.SizeFactor / 100.0f));
+
+        return v;
     }
 
     private static DateTime _lastCall = DateTime.Now;
