@@ -102,7 +102,7 @@ internal class QuestFinishSolver : BaseSolver
     public override uint Icon => 1;
     private readonly List<uint> MovedLevels = [];
 
-    QuestItem? _quest = null;
+    internal QuestItem? QuestItem { get; private set; } =  null;
 
     public override Type[] SubSolvers => [typeof(TalkSolver), typeof(YesOrNoSolver)];
 
@@ -132,11 +132,11 @@ internal class QuestFinishSolver : BaseSolver
         var result = quests.FirstOrDefault(q => !(q.Quest?.IsRepeatable ?? true))
             ?? quests.FirstOrDefault();
 
-        if (result?.Quest.RowId == _quest?.Quest.RowId) return;
+        if (result?.Quest.RowId == QuestItem?.Quest.RowId) return;
 
         Svc.Log.Info("Try to finish " +  result?.Quest.Name.RawString + " " + result?.Quest.RowId);
         MovedLevels.Clear();
-        _quest = result;
+        QuestItem = result;
         _validTargets.Clear();
     }
 
@@ -151,7 +151,7 @@ internal class QuestFinishSolver : BaseSolver
         MovedLevels.Clear();
         _validTargets.Clear();
 
-        _quest = null;
+        QuestItem = null;
     }
 
     private void FrameworkUpdate(IFramework framework)
@@ -162,16 +162,16 @@ internal class QuestFinishSolver : BaseSolver
 
         FindQuest();
 
-        if (_quest == null)
+        if (QuestItem == null)
         {
             IsEnable = false;
             return;
         }
 
-        foreach (var level in _quest.Levels)
+        foreach (var level in QuestItem.Levels)
         {
             if (MovedLevels.Contains(level.RowId)) continue;
-            if (CalculateOneLevel(level, _quest.Quest))
+            if (CalculateOneLevel(level, QuestItem.Quest))
             {
                 MovedLevels.Add(level.RowId);
                 _validTargets.Clear();
@@ -268,7 +268,7 @@ internal class QuestFinishSolver : BaseSolver
     }
     private unsafe void OnAddonJournalResult(AddonEvent type, AddonArgs args)
     {
-        var item = _quest?.Quest.OptionalItemReward.LastOrDefault(i => i.Row != 0);
+        var item = QuestItem?.Quest.OptionalItemReward.LastOrDefault(i => i.Row != 0);
         if (item != null)
         {
             Callback.Fire((AtkUnitBase*)args.Addon, true, 0, item.Row);

@@ -13,6 +13,7 @@ using QuestSolver.Helpers;
 using QuestSolver.IPC;
 using QuestSolver.Solvers;
 using QuestSolver.Windows;
+using System.Collections.Generic;
 using XIVConfigUI;
 
 namespace QuestSolver;
@@ -59,10 +60,13 @@ internal class Plugin : IDalamudPlugin
 
         if (!bar.Shown) bar.Shown = true;
 
+        var solver = GetSolver<QuestFinishSolver>();
+        var payloads = solver?.QuestItem?.Quest.Name.RawString;
         bar.Text = new SeString(
             new IconPayload(BitmapFontIcon.FanFestival),
-            new TextPayload("Quest")
+             new TextPayload(payloads ?? "Quest")
             );
+
         bar.OnClick ??= new(Cancel);
     }
 

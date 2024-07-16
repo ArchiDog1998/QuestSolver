@@ -66,7 +66,7 @@ internal class AetherCurrentSolver : BaseSolver
             StaticAether(aether);
         }
         else if(aether.Quest.Value is not null
-            && aether.Quest.Value.PreviousQuest.All(i => i.Row == 0 || QuestManager.IsQuestComplete(i.Row)))
+            && aether.Quest.Value.PreviousFinished())
         {
             QuestAether(aether, dest);
         }
@@ -79,6 +79,14 @@ internal class AetherCurrentSolver : BaseSolver
     private static void QuestAether(AetherCurrent aether, Level dest)
     {
         if (Plugin.GetSolver<QuestFinishSolver>()?.IsEnable ?? false) return;
+
+        unsafe
+        {
+            if (QuestManager.Instance()->IsQuestAccepted(aether.Quest.Row))
+            {
+                Plugin.IsEnableSolver<QuestFinishSolver>();
+            }
+        }
 
         if (!Available) return;
 
@@ -93,8 +101,8 @@ internal class AetherCurrentSolver : BaseSolver
 
     private static void StaticAether(AetherCurrent aether)
     {
-        var obj = Svc.Objects.Where(o => o is not IPlayerCharacter
-            && o.IsTargetable && !string.IsNullOrEmpty(o.Name.TextValue))
+        var obj = Svc.Objects
+            .Where(o => o is not IPlayerCharacter && o.IsTargetable && !string.IsNullOrEmpty(o.Name.TextValue))
             .MinBy(i => Vector3.DistanceSquared(Player.Object.Position, i.Position));
 
         if (obj == null) return;

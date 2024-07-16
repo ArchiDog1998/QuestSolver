@@ -5,12 +5,11 @@ using ECommons.MathHelpers;
 using FFXIVClientStructs.FFXIV.Client.UI.Agent;
 using Lumina.Excel.GeneratedSheets;
 using System.Numerics;
+using static FFXIVClientStructs.FFXIV.Client.UI.UIModule.Delegates;
 
 namespace QuestSolver.Helpers;
 internal static class MoveHelper
 {
-    internal const float CLOSE_DISTANCE_SQUARE = 5;
-
     private static Vector3 lastPos = default;
     private static DateTime stopTime = DateTime.Now;
 
@@ -45,9 +44,10 @@ internal static class MoveHelper
         return MoveToInMap(destination);
     }
 
-    public static bool MoveToInMap(Vector3 destination)
+    private static bool toggle = false;
+    public static bool MoveToInMap(Vector3 destination, float distance = 2)
     {
-        var close = Vector3.DistanceSquared(Player.Object.Position, destination) < CLOSE_DISTANCE_SQUARE - 0.5f;
+        var close = Vector3.DistanceSquared(Player.Object.Position, destination) < distance * distance;
 
         if (close) //Nearby!
         {
@@ -90,10 +90,17 @@ internal static class MoveHelper
             var dis = Vector3.DistanceSquared(Player.Object.Position, lastPos);
             if (dis < 0.001 && DateTime.Now - stopTime > TimeSpan.FromSeconds(3))
             {
-                MountHelper.TryJump();
+                if (toggle)
+                {
+                    MountHelper.TryJump();
+                }
+                else
+                {
+                    //Re calculate.
+                    Plugin.Vnavmesh.Stop();
+                }
+                toggle = !toggle;
 
-                //Re calculate.
-                Plugin.Vnavmesh.Stop();
                 stopTime = DateTime.Now;
             }
             lastPos = Player.Object.Position;
@@ -136,6 +143,6 @@ internal static class MoveHelper
     }
     public static bool IsInSide(this Level level, Vector3 position)
     {
-        return Vector2.DistanceSquared(level.ToLocation().ToVector2(), position.ToVector2()) <= Math.Max(CLOSE_DISTANCE_SQUARE, level.Radius * level.Radius);
+        return Vector2.DistanceSquared(level.ToLocation().ToVector2(), position.ToVector2()) <= Math.Max(4, level.Radius * level.Radius);
     }
 }

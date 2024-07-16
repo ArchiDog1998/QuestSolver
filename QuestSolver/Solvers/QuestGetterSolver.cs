@@ -89,9 +89,17 @@ internal class QuestGetterSolver : BaseSolver
         return tar;
     }
 
-    internal static unsafe void OnAddonJournalAccept(AddonEvent type, AddonArgs args)
+    internal static void OnAddonJournalAccept(AddonEvent type, AddonArgs args)
     {
-        Callback.Fire((AtkUnitBase*)args.Addon, true, 3);
-        Plugin.IsEnableSolver<QuestFinishSolver>();
+        unsafe
+        {
+            Callback.Fire((AtkUnitBase*)args.Addon, true, 3);
+        }
+
+        Task.Run(async () =>
+        {
+            await Task.Delay(1000);
+            Plugin.IsEnableSolver<QuestFinishSolver>();
+        });
     }
 }
