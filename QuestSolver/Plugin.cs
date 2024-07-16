@@ -1,21 +1,19 @@
-﻿using Dalamud.Interface.Windowing;
+﻿using Dalamud.Game.Gui.Dtr;
+using Dalamud.Game.Text.SeStringHandling;
+using Dalamud.Game.Text.SeStringHandling.Payloads;
+using Dalamud.Interface.Windowing;
 using Dalamud.Plugin;
+using Dalamud.Plugin.Services;
 using ECommons;
 using ECommons.Automation;
 using ECommons.DalamudServices;
 using ECommons.GameHelpers;
-using FFXIVClientStructs.FFXIV.Client.Game;
-using FFXIVClientStructs.FFXIV.Client.UI;
-using FFXIVClientStructs.FFXIV.Component.GUI;
 using QuestSolver.Configuration;
 using QuestSolver.Helpers;
 using QuestSolver.IPC;
 using QuestSolver.Solvers;
 using QuestSolver.Windows;
 using XIVConfigUI;
-using ECommons.Automation.UIInput;
-using ECommons.Schedulers;
-using System;
 
 namespace QuestSolver;
 internal class Plugin : IDalamudPlugin
@@ -37,6 +35,7 @@ internal class Plugin : IDalamudPlugin
         Svc.PluginInterface.UiBuilder.Draw += Draw;
         Svc.PluginInterface.UiBuilder.OpenConfigUi += OpenConfigUi;
         Svc.PluginInterface.UiBuilder.OpenMainUi += OpenConfigUi;
+        Svc.Framework.Update += Framework_Update;
 
         MountHelper.Init();
 
@@ -53,6 +52,20 @@ internal class Plugin : IDalamudPlugin
         CreateWindows();
     }
 
+    private IDtrBarEntry? bar;
+    private void Framework_Update(IFramework framework)
+    {
+        bar ??= Svc.DtrBar.Get("Quest Solver");
+
+        if (!bar.Shown) bar.Shown = true;
+
+        bar.Text = new SeString(
+            new IconPayload(BitmapFontIcon.FanFestival),
+            new TextPayload("Quest")
+            );
+        bar.OnClick ??= new(Cancel);
+    }
+
     public static void IsEnableSolver<T>(bool isEnable = true) where T : BaseSolver
     {
         var solver = GetSolver<T>();
@@ -63,6 +76,11 @@ internal class Plugin : IDalamudPlugin
     public static T? GetSolver<T>() where T : BaseSolver
     {
         return _settingsWindow.Items.OfType<SolverItem>().Select(i => i.Solver).OfType<T>().FirstOrDefault();
+    }
+
+    public static BaseSolver[] GetSolvers(params Type[] types)
+    {
+        return _settingsWindow.Items.OfType<SolverItem>().Select(i => i.Solver).Where(i => types.Contains(i.GetType())).ToArray();
     }
 
     public void Dispose()
@@ -84,9 +102,12 @@ internal class Plugin : IDalamudPlugin
         XIVConfigUIMain.Dispose();
         ECommonsMain.Dispose();
 
+        Svc.Framework.Update -= Framework_Update;
         Svc.PluginInterface.UiBuilder.Draw -= Draw;
         Svc.PluginInterface.UiBuilder.OpenConfigUi -= OpenConfigUi;
         Svc.PluginInterface.UiBuilder.OpenMainUi -= OpenConfigUi;
+
+        bar?.Remove();
         GC.SuppressFinalize(this);
     }
 
@@ -115,13 +136,19 @@ internal class Plugin : IDalamudPlugin
     {
         if (str == "Cancel")
         {
-            foreach (var entry in _settingsWindow.Items)
-            {
-                if (entry is not SolverItem solver) continue;
-                solver.Solver.IsEnable = false;
-            }
+            Cancel();
         }
 
         _settingsWindow.Toggle();
+    }
+
+    private static void Cancel()
+    {
+        foreach (var entry in _settingsWindow.Items)
+        {
+            if (entry is not SolverItem solver) continue;
+            solver.Solver.IsEnable = false;
+        }
+
     }
 }

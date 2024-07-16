@@ -34,5 +34,6 @@
   "QuestSolver.Solvers.TalkSolverName.CutSceneTalkDelay": "CutScene Talk Delay",
   "QuestSolver.Solvers.QuestGetterSolver": "Quest Getter",
   "QuestSolver.Solvers.QuestGetterSolverName.Range": "Search Range",
-  "QuestSolver.Solvers.SkipCutscene": "Skip Cutscene"
+  "QuestSolver.Solvers.SkipCutscene": "Skip Cutscene",
+  "QuestSolver.Solvers.InventoryRemover": "InventoryRemover"
 }

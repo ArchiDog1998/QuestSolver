@@ -7,6 +7,8 @@ using XIVConfigUI.Attributes;
 namespace QuestSolver.Solvers;
 internal abstract class BaseSolver
 {
+    public virtual Type[] SubSolvers { get; } = [];
+
     private bool _isEnable;
     [UI("Enable")]
     public bool IsEnable 
@@ -19,6 +21,10 @@ internal abstract class BaseSolver
 
             if (value)
             {
+                foreach (var solver in Plugin.GetSolvers(SubSolvers))
+                {
+                    solver.IsEnable = true;
+                }
                 Enable();
             }
             else

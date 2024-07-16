@@ -103,11 +103,11 @@ internal class QuestFinishSolver : BaseSolver
     private readonly List<uint> MovedLevels = [];
 
     QuestItem? _quest = null;
+
+    public override Type[] SubSolvers => [typeof(TalkSolver), typeof(YesOrNoSolver)];
+
     protected override void Enable()
     {
-        Plugin.IsEnableSolver<TalkSolver>();
-        Plugin.IsEnableSolver<YesOrNoSolver>();
-
         Svc.AddonLifecycle.RegisterListener(AddonEvent.PostSetup, "JournalResult", OnAddonJournalResult);
         //Svc.AddonLifecycle.RegisterListener(AddonEvent.PostDraw, "JournalResult", OnAddonJournalResult);
         Svc.AddonLifecycle.RegisterListener(AddonEvent.PostSetup, ["Request", "SelectString"], OnAddonRequest);
