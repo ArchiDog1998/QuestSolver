@@ -35,5 +35,11 @@
   "QuestSolver.Solvers.QuestGetterSolver": "Quest Getter",
   "QuestSolver.Solvers.QuestGetterSolverName.Range": "Search Range",
   "QuestSolver.Solvers.SkipCutscene": "Skip Cutscene",
-  "QuestSolver.Solvers.InventoryRemover": "InventoryRemover"
+  "QuestSolver.Solvers.InventoryRemover": "InventoryRemover",
+  "QuestSolver.Windows.SolverItemType.Quest": "Quest",
+  "QuestSolver.Windows.SolverItemType.UI": "UI",
+  "QuestSolver.Solvers.LeveQuestSolver": "Leve Solver",
+  "QuestSolver.Configuration.SettingsName.Distance": "Moving Distance",
+  "QuestSolver.Solvers.RequestSolver": "Request Clicker",
+  "QuestSolver.Solvers.YesOrNoSolverName.Delay": "Delay"
 }

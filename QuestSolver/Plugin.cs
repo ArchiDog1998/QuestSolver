@@ -8,8 +8,9 @@ using ECommons;
 using ECommons.Automation;
 using ECommons.DalamudServices;
 using ECommons.GameHelpers;
+using FFXIVClientStructs.FFXIV.Client.Game;
+using FFXIVClientStructs.FFXIV.Client.UI;
 using FFXIVClientStructs.FFXIV.Component.GUI;
-using Lumina.Excel.GeneratedSheets;
 using QuestSolver.Configuration;
 using QuestSolver.Helpers;
 using QuestSolver.IPC;
@@ -52,18 +53,6 @@ internal class Plugin : IDalamudPlugin
 
         Vnavmesh = new VnavmeshManager();
         CreateWindows();
-
-        unsafe
-        {
-            //EventHelper.SendEvent(AgentId.LeveQuest, 0, 3, 773);
-
-
-            Leve l;
-            //var talk = (AtkUnitBase*)Svc.GameGui.GetAddonByName("GuildLeve");
-            var talk = (AtkUnitBase*)Svc.GameGui.GetAddonByName("SelectString");
-
-            Callback.Fire(talk, true, -1);
-        }
     }
 
     private IDtrBarEntry? bar;

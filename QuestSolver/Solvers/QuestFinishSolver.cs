@@ -25,13 +25,13 @@ internal class QuestFinishSolver : BaseSolver
 
     internal QuestItem? QuestItem { get; private set; } =  null;
 
-    public override Type[] SubSolvers => [typeof(TalkSolver), typeof(YesOrNoSolver)];
+    public override Type[] SubSolvers => [typeof(TalkSolver), typeof(YesOrNoSolver), typeof(RequestSolver)];
 
     protected override void Enable()
     {
         Svc.AddonLifecycle.RegisterListener(AddonEvent.PostSetup, "JournalResult", OnAddonJournalResult);
         //Svc.AddonLifecycle.RegisterListener(AddonEvent.PostDraw, "JournalResult", OnAddonJournalResult);
-        Svc.AddonLifecycle.RegisterListener(AddonEvent.PostSetup, ["Request", "SelectString"], OnAddonRequest);
+        Svc.AddonLifecycle.RegisterListener(AddonEvent.PostSetup, "SelectString", OnAddonRequest);
 
         Svc.Framework.Update += FrameworkUpdate;
     }
@@ -142,36 +142,29 @@ internal class QuestFinishSolver : BaseSolver
     {
         var eobjs = Svc.Data.GetExcelSheet<EObj>();
 
-        var objs = Svc.Objects.Union(_validTargets).ToArray();
+        var objs = TargetHelper.GetInteractableTargets(level).Union(_validTargets).ToArray();
         _validTargets.Clear();
         foreach (var item in objs)
         {
-            if (!level.IsInSide(item)) continue;
-            if (!item.IsTargetable) continue;
-            if (!item.IsValid()) continue;
+            var icon = item.GetNameplateIconId();
 
-            unsafe
+            if (icon is 71203 or 71205 or 70983//MSQ
+                or 71343 or 71345 // Important
+                or 71223 or 71225 // Side
+                )
             {
-                var icon = item.Struct()->NamePlateIconId;
-
-                if (icon is 71203 or 71205 or 70983//MSQ
-                    or 71343 or 71345 // Important
-                    or 71223 or 71225 // Side
-                    )
-                {
-                    _validTargets.Add(item);
-                }
-                else if (eobjs?.GetRow(item.DataId)?.Data == quest.RowId)
-                {
-                    _validTargets.Add(item);
-                }
-#if DEBUG
-                else if (icon != 0)
-                {
-                    Svc.Log.Error($"{item.Name} Name Place {icon}");
-                }
-#endif
+                _validTargets.Add(item);
             }
+            else if (eobjs?.GetRow(item.DataId)?.Data == quest.RowId)
+            {
+                _validTargets.Add(item);
+            }
+#if DEBUG
+            else if (icon != 0)
+            {
+                Svc.Log.Error($"{item.Name} Name Place {icon}");
+            }
+#endif
         }
     }
     private unsafe void OnAddonJournalResult(AddonEvent type, AddonArgs args)

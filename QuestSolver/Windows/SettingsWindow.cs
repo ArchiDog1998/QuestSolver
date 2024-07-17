@@ -1,4 +1,5 @@
-﻿using QuestSolver.Solvers;
+﻿using ImGuiNET;
+using QuestSolver.Solvers;
 using XIVConfigUI;
 using XIVConfigUI.SearchableConfigs;
 
@@ -21,5 +22,16 @@ public class SettingsWindow : ConfigWindow
 
     public SettingsWindow() : base(typeof(SettingsWindow).Assembly.GetName())
     {
+    }
+
+    public override SearchableCollection Collection { get; } = new SearchableCollection(Plugin.Settings);
+
+    protected override void DrawAbout()
+    {
+        base.DrawAbout();
+
+        ImGui.Separator();
+
+        Collection.DrawItems(0);
     }
 }

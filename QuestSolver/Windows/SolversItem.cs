@@ -1,4 +1,5 @@
 ﻿using Dalamud.Interface.Textures.TextureWraps;
+using Dalamud.Interface.Utility.Raii;
 using ImGuiNET;
 using QuestSolver.Solvers;
 using XIVConfigUI;
@@ -24,6 +25,7 @@ internal class SolversItem(SolverItemType type, params BaseSolver[] solvers) : C
         {
             if (ImGui.CollapsingHeader(Solvers[i].GetType().Local()))
             {
+                using var id = ImRaii.PushId(i);
                 Collections[i].DrawItems(0);
             }
         }

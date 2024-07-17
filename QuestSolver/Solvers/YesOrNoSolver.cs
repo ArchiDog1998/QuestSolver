@@ -46,7 +46,7 @@ internal class YesOrNoSolver : BaseSolver
         {
             if (CallbackHelper.Fire(yesOrNo, true, 0))
             {
-                Svc.Log.Info("Click Yes");
+                Svc.Log.Info("Clicked Yes");
             }
         }
     }

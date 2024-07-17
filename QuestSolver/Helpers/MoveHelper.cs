@@ -5,7 +5,6 @@ using ECommons.MathHelpers;
 using FFXIVClientStructs.FFXIV.Client.UI.Agent;
 using Lumina.Excel.GeneratedSheets;
 using System.Numerics;
-using static FFXIVClientStructs.FFXIV.Client.UI.UIModule.Delegates;
 
 namespace QuestSolver.Helpers;
 internal static class MoveHelper
@@ -44,8 +43,9 @@ internal static class MoveHelper
         return MoveToInMap(destination);
     }
 
-    public static bool MoveToInMap(Vector3 destination, float distance = 2)
+    public static bool MoveToInMap(Vector3 destination)
     {
+        var distance = Plugin.Settings.Distance - 0.1f;
         var close = Vector3.DistanceSquared(Player.Object.Position, destination) < distance * distance;
 
         if (close) //Nearby!
@@ -141,6 +141,6 @@ internal static class MoveHelper
     }
     public static bool IsInSide(this Level level, Vector3 position)
     {
-        return Vector2.DistanceSquared(level.ToLocation().ToVector2(), position.ToVector2()) <= Math.Max(4, level.Radius * level.Radius);
+        return Vector2.DistanceSquared(level.ToLocation().ToVector2(), position.ToVector2()) <= Math.Max(Plugin.Settings.Distance * Plugin.Settings.Distance, level.Radius * level.Radius);
     }
 }

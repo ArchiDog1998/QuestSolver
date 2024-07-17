@@ -115,7 +115,12 @@ internal static class QuestHelper
         return quest.PreviousQuest.All(i => i.Row == 0 || QuestManager.IsQuestComplete(i.Row));
     }
 
-    public unsafe static QuestItem? FindBestQuest()
+    public static QuestIconType GetQuestIcon(this QuestItem quest)
+    {
+        return (QuestIconType)(byte)quest.Quest.EventIconType.Row;
+    }
+
+    public unsafe static QuestItem? FindBestQuest(uint questId = 0)
     {
         List<QuestItem> quests = [];
 
@@ -130,8 +135,87 @@ internal static class QuestHelper
             quests.Add(new QuestItem(i));
         }
 
-        quests[0].Quest.EventIconType
-        return quests.FirstOrDefault(q => !(q.Quest?.IsRepeatable ?? true))
-            ?? quests.FirstOrDefault();
+        var result = quests.FirstOrDefault(q => q.Quest.RowId == questId);
+
+        if (result != null) return result;
+
+        var priorityQuests = quests.Where(q => q.GetQuestIcon() is QuestIconType.MainScenarioQuest);
+
+        if (!priorityQuests.Any())
+        {
+            priorityQuests = quests.Where(q => q.GetQuestIcon() is QuestIconType.FunctionQuest or QuestIconType.FunctionQuest2);
+        }
+
+        if (!priorityQuests.Any())
+        {
+            priorityQuests = quests;
+        }
+
+        return priorityQuests.FirstOrDefault(q => !(q.Quest?.IsRepeatable ?? true))
+            ?? priorityQuests.FirstOrDefault();
+    }
+
+    public static bool CanTake(this Leve leve)
+    {
+        if (!leve.CanTake<CraftLeve>(CanTake)) return false;
+        if (!leve.CanTake<CompanyLeve>(CanTake)) return false;
+        if (!leve.CanTake<GatheringLeve>(CanTake)) return false;
+        if (!leve.CanTake<BattleLeve>(CanTake)) return false;
+
+        return true;
+    }
+
+    private static bool CanTake<T>(this Leve leve, Func<T, bool> predict) where T : ExcelRow
+    {
+        if (Svc.Data.GetExcelSheet<T>()?.GetRow((uint)leve.DataId) is T craftLeve)
+        {
+            if (!predict(craftLeve)) return false;
+        }
+        return true;
+    }
+
+    private static bool CanTake(CraftLeve craftLeve)
+    {
+        var count = Math.Max((byte)1, craftLeve.Repeats);
+
+        foreach (var item in craftLeve.UnkData3)
+        {
+            if (item.ItemCount == 0 || item.Item == 0) continue;
+
+            var itemCount = InventoryHelper.ItemCount((uint)item.Item, true) / item.ItemCount
+                          + InventoryHelper.ItemCount((uint)item.Item, false) / item.ItemCount;
+
+            if (itemCount < count) return false;
+        }
+        return true;
+    }
+
+    private static bool CanTake(CompanyLeve companyLeve)
+    {
+        return true;
+    }
+
+    private static bool CanTake(GatheringLeve gatheringLeve)
+    {
+        return true;
+    }
+
+    private static bool CanTake(BattleLeve battleLeve)
+    {
+        return true;
+    }
+
+    public static Level? GetLeveStartLevel(this Leve leve)
+    {
+        if (leve.LevelStart.Row != 0)
+        {
+            return leve.LevelLevemete.Value;
+        }
+        else
+        {
+            var otherLeve = Svc.Data.GetExcelSheet<Leve>()?.FirstOrDefault(l => l.ClassJobLevel == leve.ClassJobLevel
+                && l.LevelStart.Row != 0);
+            return otherLeve?.LevelLevemete.Value;
+        }
     }
 }
