@@ -5,17 +5,18 @@ using XIVConfigUI.SearchableConfigs;
 namespace QuestSolver.Windows;
 public class SettingsWindow : ConfigWindow
 {
-    public override IEnumerable<Searchable> Searchables => Items.OfType<SolverItem>().SelectMany(i => i.Collection);
+    public override IEnumerable<Searchable> Searchables => Items.OfType<SolversItem>().SelectMany(i => i.Collections.SelectMany(i => i));
     protected override string Kofi => "B0B0IN5DX";
 
     protected override ConfigWindowItem[] GetItems()
     {
-        var solverItems = typeof(SettingsWindow).Assembly.GetTypes()
+        var solvers = typeof(SettingsWindow).Assembly.GetTypes()
             .Where(t => t.IsClass && !t.IsAbstract
                 && t.IsAssignableTo(typeof(BaseSolver)))
-            .Select(i => new SolverItem((BaseSolver)Activator.CreateInstance(i)!));
+            .Select(i => (BaseSolver)Activator.CreateInstance(i)!);
 
-        return [.. solverItems];
+        return [.. solvers.GroupBy(s => s.ItemType)
+            .Select(i => new SolversItem(i.Key, [.. i]))];
     }
 
     public SettingsWindow() : base(typeof(SettingsWindow).Assembly.GetName())

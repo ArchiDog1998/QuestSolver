@@ -44,7 +44,6 @@ internal static class MoveHelper
         return MoveToInMap(destination);
     }
 
-    private static bool toggle = false;
     public static bool MoveToInMap(Vector3 destination, float distance = 2)
     {
         var close = Vector3.DistanceSquared(Player.Object.Position, destination) < distance * distance;
@@ -88,9 +87,10 @@ internal static class MoveHelper
         else if (Plugin.Vnavmesh.IsRunning()) //Re calculate.
         {
             var dis = Vector3.DistanceSquared(Player.Object.Position, lastPos);
-            if (dis < 0.001 && DateTime.Now - stopTime > TimeSpan.FromSeconds(3))
+            var time = (DateTime.Now - stopTime).TotalSeconds;
+            if (dis < 0.001 && time > 3)
             {
-                if (toggle)
+                if (time < 4)
                 {
                     MountHelper.TryJump();
                 }
@@ -98,10 +98,8 @@ internal static class MoveHelper
                 {
                     //Re calculate.
                     Plugin.Vnavmesh.Stop();
+                    stopTime = DateTime.Now;
                 }
-                toggle = !toggle;
-
-                stopTime = DateTime.Now;
             }
             lastPos = Player.Object.Position;
             return true;

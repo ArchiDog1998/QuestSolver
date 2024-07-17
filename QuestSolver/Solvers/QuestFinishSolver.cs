@@ -6,100 +6,21 @@ using ECommons.Automation;
 using ECommons.DalamudServices;
 using ECommons.GameFunctions;
 using ECommons.GameHelpers;
-using FFXIVClientStructs.FFXIV.Application.Network.WorkDefinitions;
-using FFXIVClientStructs.FFXIV.Client.Game;
 using FFXIVClientStructs.FFXIV.Client.Game.Event;
 using FFXIVClientStructs.FFXIV.Component.GUI;
-using Lumina;
-using Lumina.Data;
-using Lumina.Excel;
 using Lumina.Excel.GeneratedSheets;
 using QuestSolver.Helpers;
+using QuestSolver.Windows;
 using System.ComponentModel;
 using System.Numerics;
 
 namespace QuestSolver.Solvers;
 
-internal class MyQuest : Quest
-{
-    public uint[,] ToDoLocation { get; set; } = new uint[24, 8];
-    public override void PopulateData(RowParser parser, GameData gameData, Language language)
-    {
-        base.PopulateData(parser, gameData, language);
-
-        for (int i = 0; i < 24; i++)
-        {
-            for (int j = 0; j < 8; j++)
-            {
-                ToDoLocation[i, j] = parser.ReadColumn<uint>(1222 + i + j * 24);
-            }
-        }
-    }
-}
-
-internal unsafe class QuestItem(int index)
-{
-    public QuestWork Work => QuestManager.Instance()->NormalQuests[index];
-
-    public byte[] Sequences
-    {
-        get
-        {
-            var result = new List<byte>();
-            var data = Quest!.ToDoCompleteSeq;
-            for (int i = 0; i < data.Length; i++)
-            {
-                var item = data[i];
-                if (item == Work.Sequence)
-                {
-                    result.Add((byte)i);
-                }
-            }
-            return [.. result];
-        }
-    }
-    public MyQuest Quest { get; } = Svc.Data.GetExcelSheet<MyQuest>()?.GetRow((uint)QuestManager.Instance()->NormalQuests[index].QuestId | 0x10000)!;
-    public unsafe Level[] Levels
-    {
-        get
-        {
-            var data = Svc.Data.GetExcelSheet<Level>();
-            if (data == null) return [];
-            var result = new List<Level>();
-
-            //var questEvent = (QuestEventHandler*)EventFramework.Instance()->GetEventHandlerById(Quest.RowId);
-
-            foreach (var sequence in Sequences)
-            {
-                for (byte i = 0; i < 8; i++)
-                {
-                    var id = Quest.ToDoLocation[sequence, i];
-
-                    //if (questEvent->IsTodoChecked(Player.BattleChara, i))
-                    //{
-                    //    Svc.Log.Info("Finished Todo");
-                    //    continue;
-                    //}
-
-                    if (id == 0) continue;
-
-                    var item = data.GetRow(id);
-                    if (item == null) continue;
-
-                    result.Add(item);
-                }
-            }
-
-            return [.. result];
-        }
-    }
-}
-
 
 [Description("Quest Finisher")]
 internal class QuestFinishSolver : BaseSolver
 {
-    public override uint Icon => 1;
+    public override SolverItemType ItemType => SolverItemType.Quest;
     private readonly List<uint> MovedLevels = [];
 
     internal QuestItem? QuestItem { get; private set; } =  null;
@@ -117,20 +38,7 @@ internal class QuestFinishSolver : BaseSolver
 
     private unsafe void FindQuest()
     {
-        List<QuestItem> quests = [];
-
-        var normals = QuestManager.Instance()->NormalQuests;
-        for (int i = 0; i < normals.Length; i++)
-        {
-            var item = normals[i];
-
-            if (item.QuestId == 0) continue;
-            if (item.IsHidden) continue;
-
-            quests.Add(new QuestItem(i));
-        }
-        var result = quests.FirstOrDefault(q => !(q.Quest?.IsRepeatable ?? true))
-            ?? quests.FirstOrDefault();
+        var result = QuestHelper.FindBestQuest();
 
         if (result?.Quest.RowId == QuestItem?.Quest.RowId) return;
 
@@ -201,7 +109,7 @@ internal class QuestFinishSolver : BaseSolver
     /// </summary>
     /// <param name="level"></param>
     /// <returns>True for next.</returns>
-    private bool CalculateOneLevel(Level level, MyQuest quest)
+    private bool CalculateOneLevel(Level level, QuestWithTodo quest)
     {
         if (level.IsInSide())
         {
@@ -230,7 +138,7 @@ internal class QuestFinishSolver : BaseSolver
         return false;
     }
 
-    private void FindValidTargets(Level level, MyQuest quest)
+    private void FindValidTargets(Level level, QuestWithTodo quest)
     {
         var eobjs = Svc.Data.GetExcelSheet<EObj>();
 

@@ -8,12 +8,13 @@ using ECommons;
 using ECommons.Automation;
 using ECommons.DalamudServices;
 using ECommons.GameHelpers;
+using FFXIVClientStructs.FFXIV.Component.GUI;
+using Lumina.Excel.GeneratedSheets;
 using QuestSolver.Configuration;
 using QuestSolver.Helpers;
 using QuestSolver.IPC;
 using QuestSolver.Solvers;
 using QuestSolver.Windows;
-using System.Collections.Generic;
 using XIVConfigUI;
 
 namespace QuestSolver;
@@ -51,6 +52,18 @@ internal class Plugin : IDalamudPlugin
 
         Vnavmesh = new VnavmeshManager();
         CreateWindows();
+
+        unsafe
+        {
+            //EventHelper.SendEvent(AgentId.LeveQuest, 0, 3, 773);
+
+
+            Leve l;
+            //var talk = (AtkUnitBase*)Svc.GameGui.GetAddonByName("GuildLeve");
+            var talk = (AtkUnitBase*)Svc.GameGui.GetAddonByName("SelectString");
+
+            Callback.Fire(talk, true, -1);
+        }
     }
 
     private IDtrBarEntry? bar;
@@ -79,22 +92,19 @@ internal class Plugin : IDalamudPlugin
 
     public static T? GetSolver<T>() where T : BaseSolver
     {
-        return _settingsWindow.Items.OfType<SolverItem>().Select(i => i.Solver).OfType<T>().FirstOrDefault();
+        return _settingsWindow.Items.OfType<SolversItem>().SelectMany(i => i.Solvers).OfType<T>().FirstOrDefault();
     }
 
     public static BaseSolver[] GetSolvers(params Type[] types)
     {
-        return _settingsWindow.Items.OfType<SolverItem>().Select(i => i.Solver).Where(i => types.Contains(i.GetType())).ToArray();
+        return _settingsWindow.Items.OfType<SolversItem>().SelectMany(i => i.Solvers).Where(i => types.Contains(i.GetType())).ToArray();
     }
 
     public void Dispose()
     {
         Settings.Save();
 
-        foreach (var item in _settingsWindow.Items.OfType<SolverItem>())
-        {
-            item.Solver.IsEnable = false;
-        }
+        Cancel();
 
         _windowSystem.RemoveAllWindows();
 
@@ -150,9 +160,12 @@ internal class Plugin : IDalamudPlugin
     {
         foreach (var entry in _settingsWindow.Items)
         {
-            if (entry is not SolverItem solver) continue;
-            solver.Solver.IsEnable = false;
-        }
+            if (entry is not SolversItem solvers) continue;
 
+            foreach (var item in solvers.Solvers)
+            {
+                item.IsEnable = false;
+            }
+        }
     }
 }

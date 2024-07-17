@@ -1,11 +1,10 @@
-﻿using Dalamud.Game.Addon.Lifecycle;
-using Dalamud.Game.Addon.Lifecycle.AddonArgTypes;
-using Dalamud.Plugin.Services;
+﻿using Dalamud.Plugin.Services;
 using ECommons.DalamudServices;
 using FFXIVClientStructs.FFXIV.Client.UI;
 using FFXIVClientStructs.FFXIV.Component.GUI;
 using QuestSolver.Data;
 using QuestSolver.Helpers;
+using QuestSolver.Windows;
 using System.ComponentModel;
 using XIVConfigUI.Attributes;
 
@@ -25,7 +24,7 @@ internal class TalkSolver : BaseSolver
     [UI("CutScene Talk Delay", Order = 1)]
     public float CutSceneTalkDelay { get => Plugin.Settings.TalkSolverCutSceneTalkDelay; set => Plugin.Settings.TalkSolverCutSceneTalkDelay = value; }
 
-    public override uint Icon => 45;
+    public override SolverItemType ItemType => SolverItemType.UI;
 
     public TalkSolver()
     {

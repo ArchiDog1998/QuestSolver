@@ -11,6 +11,7 @@ using FFXIVClientStructs.FFXIV.Component.GUI;
 using Lumina.Excel.GeneratedSheets;
 using Lumina.Excel.GeneratedSheets2;
 using QuestSolver.Helpers;
+using QuestSolver.Windows;
 using System.ComponentModel;
 using System.Numerics;
 using XIVConfigUI.Attributes;
@@ -19,7 +20,7 @@ namespace QuestSolver.Solvers;
 [Description("Quest Getter")]
 internal class QuestGetterSolver : BaseSolver
 {
-    public override uint Icon => 1;
+    public override SolverItemType ItemType => SolverItemType.Quest;
 
     [Range(1, 50, ConfigUnitType.Yalms, 0.1f)]
     [UI("Search Range", Order = 1)]

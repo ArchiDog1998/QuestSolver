@@ -16,6 +16,7 @@ internal static class TargetHelper
         _lastCall = DateTime.Now;
 
         Svc.Log.Info("Interact with " + obj.Name);
+        Svc.Targets.Target = obj;
         return TargetSystem.Instance()->InteractWithObject(obj.Struct());
     }
 }

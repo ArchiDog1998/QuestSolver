@@ -2,6 +2,7 @@
 using ECommons.DalamudServices;
 using ECommons.GameHelpers;
 using QuestSolver.Helpers;
+using QuestSolver.Windows;
 using XIVConfigUI.Attributes;
 
 namespace QuestSolver.Solvers;
@@ -52,7 +53,7 @@ internal abstract class BaseSolver
         }
     }
 
-    public abstract uint Icon { get; }
+    public abstract SolverItemType ItemType { get; }
     protected abstract void Enable();
     protected abstract void Disable();
 }

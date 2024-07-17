@@ -3,6 +3,7 @@ using ECommons.DalamudServices;
 using FFXIVClientStructs.FFXIV.Component.GUI;
 using QuestSolver.Data;
 using QuestSolver.Helpers;
+using QuestSolver.Windows;
 using System.ComponentModel;
 using XIVConfigUI.Attributes;
 
@@ -11,7 +12,7 @@ namespace QuestSolver.Solvers;
 [Description("Yes Solver")]
 internal class YesOrNoSolver : BaseSolver
 {
-    public override uint Icon => 45;
+    public override SolverItemType ItemType => SolverItemType.UI;
 
     protected BoolDelay _delay;
 

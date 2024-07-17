@@ -7,6 +7,7 @@ using FFXIVClientStructs.FFXIV.Client.Game;
 using FFXIVClientStructs.FFXIV.Client.Game.UI;
 using Lumina.Excel.GeneratedSheets;
 using QuestSolver.Helpers;
+using QuestSolver.Windows;
 using System.ComponentModel;
 using System.Numerics;
 
@@ -18,7 +19,7 @@ internal class AetherCurrentSolver : BaseSolver
     private AetherCurrent[] Aethers = [];
     private readonly Dictionary<AetherCurrent, Level?> _points = [];
 
-    public override uint Icon => 64;
+    public override SolverItemType ItemType => SolverItemType.Quest;
 
     private unsafe static bool Unlocked(uint aetherId)
     {
