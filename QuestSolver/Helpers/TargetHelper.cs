@@ -23,8 +23,10 @@ internal static class TargetHelper
 
     public static IEnumerable<IGameObject> GetInteractableTargets(Level level)
     {
-        return Svc.Objects.Where(item =>level.IsInSide(item) && item.IsTargetable && item.IsValid());
+        return Svc.Objects.Where(item => item.IsValid(level));
     }
+
+    public static bool IsValid(this IGameObject obj, Level level) => level.IsInSide(obj) && obj.IsTargetable && obj.IsValid();
 
     public unsafe static uint GetNameplateIconId(this IGameObject obj) => obj.Struct()->NamePlateIconId;
 }

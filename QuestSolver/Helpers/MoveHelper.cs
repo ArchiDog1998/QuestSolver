@@ -19,7 +19,7 @@ internal static class MoveHelper
         if (level.Radius > 10)
         {
             var newDest = Plugin.Vnavmesh.PointOnFloor(destination + Vector3.UnitY * 1024, false, 5) ?? destination;
-            Svc.Log.Info($"Remap {destination} to {newDest}");
+            //Svc.Log.Info($"Remap {destination} to {newDest}");
             destination = newDest;
         }
         return MoveTo(destination, level.Territory.Row);
@@ -141,6 +141,7 @@ internal static class MoveHelper
     }
     public static bool IsInSide(this Level level, Vector3 position)
     {
-        return Vector2.DistanceSquared(level.ToLocation().ToVector2(), position.ToVector2()) <= Math.Max(Plugin.Settings.Distance * Plugin.Settings.Distance, level.Radius * level.Radius);
+        var radius = Math.Min(level.Radius, 30);
+        return Vector2.DistanceSquared(level.ToLocation().ToVector2(), position.ToVector2()) <= Math.Max(Plugin.Settings.Distance * Plugin.Settings.Distance, radius * radius);
     }
 }

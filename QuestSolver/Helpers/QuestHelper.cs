@@ -70,7 +70,7 @@ internal unsafe class QuestItem(int index)
             if (data == null) return [];
             var result = new List<Level>();
 
-            var questEvent = (QuestEventHandler*)EventFramework.Instance()->GetEventHandlerById(Quest.RowId);
+            //var questEvent = (QuestEventHandler*)EventFramework.Instance()->GetEventHandlerById(Quest.RowId);
 
             foreach (var sequence in Sequences)
             {
@@ -78,11 +78,11 @@ internal unsafe class QuestItem(int index)
                 {
                     var id = Quest.ToDoLocation[sequence, i];
 
-                    if (questEvent->IsTodoChecked(Player.BattleChara, i))
-                    {
-                        Svc.Log.Info("Finished Todo");
-                        continue;
-                    }
+                    //if (questEvent->IsTodoChecked(Player.BattleChara, i))
+                    //{
+                    //    Svc.Log.Info("Finished Todo");
+                    //    continue;
+                    //}
 
                     if (id == 0) continue;
 

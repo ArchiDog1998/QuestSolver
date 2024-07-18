@@ -43,7 +43,6 @@ internal class QuestFinishSolver : BaseSolver
         if (result?.Quest.RowId == QuestItem?.Quest.RowId) return;
 
         Svc.Log.Info("Try to finish " +  result?.Quest.Name.RawString + " " + result?.Quest.RowId);
-        MovedLevels.Clear();
         QuestItem = result;
         _validTargets.Clear();
     }
@@ -65,7 +64,14 @@ internal class QuestFinishSolver : BaseSolver
     private void FrameworkUpdate(IFramework framework)
     {
         if (!Available) return;
-        if (WaitForCombat()) return;
+        if (WaitForCombat())
+        {
+            if (MountHelper.IsMount)
+            {
+                MountHelper.TryDisMount();
+            }
+            return;
+        }
         if (Svc.Condition[Dalamud.Game.ClientState.Conditions.ConditionFlag.BoundByDuty]) return;
 
         FindQuest();
@@ -76,6 +82,7 @@ internal class QuestFinishSolver : BaseSolver
             return;
         }
 
+        bool broke = false;
         foreach (var level in QuestItem.Levels)
         {
             if (MovedLevels.Contains(level.RowId)) continue;
@@ -85,7 +92,12 @@ internal class QuestFinishSolver : BaseSolver
                 _validTargets.Clear();
                 Svc.Log.Info("Finished Level " + level.RowId);
             }
+            broke = true;
             break;
+        }
+        if (!broke)
+        {
+            MovedLevels.Clear();
         }
     }
 
@@ -142,7 +154,7 @@ internal class QuestFinishSolver : BaseSolver
     {
         var eobjs = Svc.Data.GetExcelSheet<EObj>();
 
-        var objs = TargetHelper.GetInteractableTargets(level).Union(_validTargets).ToArray();
+        var objs = Svc.Objects.Union(_validTargets).Where(item => item.IsValid(level)).ToArray();
         _validTargets.Clear();
         foreach (var item in objs)
         {

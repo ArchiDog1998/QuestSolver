@@ -2,7 +2,7 @@
   "Author": "ArchiTed",
   "Name": "Quest Solver",
   "InternalName": "QuestSolver",
-  "Description": "Configurable timeline display of all the actions you use.",
+  "Description": "Help you to solve the quests. It is still working in progress! I am lazy, you know!\nvnavmesh required!",
   "ApplicableVersion": "any",
   "RepoUrl": "https://github.com/ArchiDog1998/QuestSolver",
   "Tags": [
@@ -19,6 +19,6 @@
   "ImageUrls": [
   ],
   "IconUrl": "https://xivapi.com/i/000000/000087_hr1.png",
-  "Punchline": "Help you to solve the quest",
+  "Punchline": "Help you to solve the quests!",
   "AcceptsFeedback": true
 }
