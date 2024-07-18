@@ -3,6 +3,7 @@ using Dalamud.Game.Addon.Lifecycle.AddonArgTypes;
 using ECommons.Automation;
 using ECommons.DalamudServices;
 using ECommons.GameHelpers;
+using FFXIVClientStructs.FFXIV.Application.Network.WorkDefinitions;
 using FFXIVClientStructs.FFXIV.Client.Game;
 using FFXIVClientStructs.FFXIV.Client.UI.Agent;
 using FFXIVClientStructs.FFXIV.Component.GUI;
@@ -14,12 +15,13 @@ using System.ComponentModel;
 namespace QuestSolver.Solvers;
 
 [Description("Leve Solver")]
-
 internal class LeveQuestSolver : BaseSolver
 {
+    public override string Description => "Only Craft leves are available!";
+
     public override SolverItemType ItemType => SolverItemType.Quest;
 
-    public static unsafe ushort LeveId => QuestManager.Instance()->LeveQuests.ToArray().FirstOrDefault(i => i.LeveId != 0).LeveId;
+    public static unsafe LeveWork LeveWork => QuestManager.Instance()->LeveQuests.ToArray().FirstOrDefault(i => i.LeveId != 0);
 
     public override Type[] SubSolvers => [typeof(TalkSolver), typeof(RequestSolver)];
 
@@ -41,8 +43,9 @@ internal class LeveQuestSolver : BaseSolver
 
     private void Framework_Update(Dalamud.Plugin.Services.IFramework framework)
     {
-        if (LeveId != 0)
+        if (LeveWork.LeveId != 0)
         {
+            Svc.Log.Info(LeveWork.Sequence.ToString());
             unsafe
             {
                 var leve = (AtkUnitBase*)Svc.GameGui.GetAddonByName("GuildLeve");
@@ -63,7 +66,7 @@ internal class LeveQuestSolver : BaseSolver
 
     private static void FinishLeve()
     {
-        var leve = Svc.Data.GetExcelSheet<Leve>()?.GetRow(LeveId);
+        var leve = Svc.Data.GetExcelSheet<Leve>()?.GetRow(LeveWork.LeveId);
         if (leve == null) return;
 
         var start = leve.LevelLevemete.Value;

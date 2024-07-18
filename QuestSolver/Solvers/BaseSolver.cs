@@ -8,6 +8,8 @@ using XIVConfigUI.Attributes;
 namespace QuestSolver.Solvers;
 internal abstract class BaseSolver
 {
+    public virtual string Description => string.Empty;
+
     public virtual Type[] SubSolvers { get; } = [];
 
     private bool _isEnable;

@@ -23,8 +23,16 @@ internal class SolversItem(SolverItemType type, params BaseSolver[] solvers) : C
     {
         for (int i = 0; i < Collections.Length; i++)
         {
-            if (ImGui.CollapsingHeader(Solvers[i].GetType().Local()))
+            var solver = Solvers[i];
+            if (ImGui.CollapsingHeader(solver.GetType().Local()))
             {
+                var desc = solver.Description;
+
+                if (!string.IsNullOrEmpty(desc))
+                {
+                    ImGui.TextWrapped(solver.GetType().Local("Description", desc));
+                }
+
                 using var id = ImRaii.PushId(i);
                 Collections[i].DrawItems(0);
             }

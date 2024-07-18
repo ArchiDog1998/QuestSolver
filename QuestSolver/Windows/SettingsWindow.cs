@@ -8,6 +8,7 @@ public class SettingsWindow : ConfigWindow
 {
     public override IEnumerable<Searchable> Searchables => Items.OfType<SolversItem>().SelectMany(i => i.Collections.SelectMany(i => i));
     protected override string Kofi => "B0B0IN5DX";
+    protected override string Crowdin => "questsolver";
 
     protected override ConfigWindowItem[] GetItems()
     {
