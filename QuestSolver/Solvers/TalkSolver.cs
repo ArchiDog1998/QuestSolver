@@ -51,6 +51,7 @@ internal class TalkSolver : BaseSolver
             if (CallbackHelper.Fire(talk, true))
             {
                 Svc.Log.Info("Close Talk");
+                _talkDelay.Delay(false);
             }
         }
 
@@ -63,6 +64,7 @@ internal class TalkSolver : BaseSolver
             if (CallbackHelper.Fire(talk, true, 0))
             {
                 Svc.Log.Info("Close CutScene Talk");
+                _cutSceneTalkDelay.Delay(false);
             }
         }
     }
