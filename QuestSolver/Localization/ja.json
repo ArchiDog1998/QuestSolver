@@ -41,5 +41,6 @@
   "QuestSolver.Solvers.LeveQuestSolver": "Leve Solver",
   "QuestSolver.Configuration.SettingsName.Distance": "Moving Distance",
   "QuestSolver.Solvers.RequestSolver": "Request Clicker",
-  "QuestSolver.Solvers.YesOrNoSolverName.Delay": "Delay"
+  "QuestSolver.Solvers.YesOrNoSolverName.Delay": "Delay",
+  "QuestSolver.Solvers.LeveQuestSolverDescription": "Only Craft leves are available!"
 }
