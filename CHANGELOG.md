@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.0.1](https://github.com/ArchiDog1998/QuestSolver/compare/v1.0.0...v1.0.1) (2024-07-24)
+
+
+### Bug Fixes
+
+* fixed some bugs. ([c88ce50](https://github.com/ArchiDog1998/QuestSolver/commit/c88ce50bc0cbd74bdeb21f96466e7205346fd2fc))
+
 ## 1.0.0 (2024-07-18)
 
 
