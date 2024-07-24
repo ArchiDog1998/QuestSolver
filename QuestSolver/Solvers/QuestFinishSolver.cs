@@ -16,7 +16,6 @@ using System.Numerics;
 
 namespace QuestSolver.Solvers;
 
-
 [Description("Quest Finisher")]
 internal class QuestFinishSolver : BaseSolver
 {
