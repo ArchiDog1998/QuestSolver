@@ -1,4 +1,5 @@
 ﻿using Dalamud.Game.Addon.Lifecycle;
+using Dalamud.Game.ClientState.Objects.Enums;
 using Dalamud.Game.ClientState.Objects.SubKinds;
 using Dalamud.Plugin.Services;
 using ECommons.DalamudServices;
@@ -60,9 +61,17 @@ internal class AetherCurrentSolver : BaseSolver
         if (isStatic)
         {
             if (!Available) return;
-            if (MountHelper.InCombat) return;
 
             if (MoveHelper.MoveTo(dest)) return;
+
+            if (MountHelper.InCombat)
+            {
+                if (MountHelper.IsMount)
+                {
+                    MountHelper.TryDisMount();
+                }
+                return;
+            }
 
             StaticAether(aether);
         }
@@ -81,14 +90,6 @@ internal class AetherCurrentSolver : BaseSolver
     {
         if (Plugin.GetSolver<QuestFinishSolver>()?.IsEnable ?? false) return;
 
-        unsafe
-        {
-            if (QuestManager.Instance()->IsQuestAccepted(aether.Quest.Row))
-            {
-                Plugin.IsEnableSolver<QuestFinishSolver>();
-            }
-        }
-
         if (!Available) return;
 
         if (MoveHelper.MoveTo(dest)) return;
@@ -103,7 +104,8 @@ internal class AetherCurrentSolver : BaseSolver
     private static void StaticAether(AetherCurrent aether)
     {
         var obj = Svc.Objects
-            .Where(o => o is not IPlayerCharacter && o.IsTargetable && !string.IsNullOrEmpty(o.Name.TextValue))
+            .Where(o => o is not IPlayerCharacter && o.IsTargetable && !string.IsNullOrEmpty(o.Name.TextValue)
+                && o.ObjectKind is ObjectKind.EventObj)
             .MinBy(i => Vector3.DistanceSquared(Player.Object.Position, i.Position));
 
         if (obj == null) return;

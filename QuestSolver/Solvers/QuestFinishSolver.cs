@@ -22,7 +22,7 @@ internal class QuestFinishSolver : BaseSolver
 {
     public override SolverItemType ItemType => SolverItemType.Quest;
     private readonly List<uint> MovedLevels = [];
-
+    internal static uint QuestId { get; set; } = 0;
     internal QuestItem? QuestItem { get; private set; } =  null;
 
     public override Type[] SubSolvers => [typeof(TalkSolver), typeof(YesOrNoSolver), typeof(RequestSolver)];
@@ -38,7 +38,7 @@ internal class QuestFinishSolver : BaseSolver
 
     private unsafe void FindQuest()
     {
-        var result = QuestHelper.FindBestQuest();
+        var result = QuestHelper.FindBestQuest(QuestId);
 
         if (result?.Quest.RowId == QuestItem?.Quest.RowId) return;
 
@@ -59,6 +59,7 @@ internal class QuestFinishSolver : BaseSolver
         _validTargets.Clear();
 
         QuestItem = null;
+        QuestId = 0;
     }
 
     private void FrameworkUpdate(IFramework framework)
