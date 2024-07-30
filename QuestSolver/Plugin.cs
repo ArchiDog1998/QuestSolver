@@ -8,9 +8,10 @@ using ECommons;
 using ECommons.Automation;
 using ECommons.DalamudServices;
 using ECommons.GameHelpers;
-using FFXIVClientStructs.FFXIV.Client.Game;
+using FFXIVClientStructs.FFXIV.Application.Network.WorkDefinitions;
 using FFXIVClientStructs.FFXIV.Client.UI;
 using FFXIVClientStructs.FFXIV.Component.GUI;
+using Lumina.Excel.GeneratedSheets;
 using QuestSolver.Configuration;
 using QuestSolver.Helpers;
 using QuestSolver.IPC;
@@ -64,6 +65,15 @@ internal class Plugin : IDalamudPlugin
 
         var solver = GetSolver<QuestFinishSolver>();
         var payloads = solver?.QuestItem?.Quest.Name.RawString;
+        if (payloads == null && (GetSolver<LeveQuestSolver>()?.IsEnable ?? false))
+        {
+            var leve = Svc.Data.GetExcelSheet<Leve>()?.GetRow(LeveQuestSolver.LeveWork.LeveId);
+            if (leve != null)
+            {
+                payloads = leve.Name.RawString;
+            }
+        }
+
         bar.Text = new SeString(
             new IconPayload(BitmapFontIcon.FanFestival),
              new TextPayload(payloads ?? "Quest")

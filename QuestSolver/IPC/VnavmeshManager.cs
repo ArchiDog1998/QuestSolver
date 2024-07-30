@@ -8,20 +8,7 @@ namespace QuestSolver.IPC;
 #pragma warning disable CS8618 
 public class VnavmeshManager
 {
-    [EzIPC("Nav.IsReady", wrapper: SafeWrapper.None)] private readonly Func<bool> IsReadyNoWrapper;
-    public bool? IsReady()
-    {
-        try
-        {
-            return IsReadyNoWrapper();
-        }
-        catch (Exception e)
-        {
-            DuoLog.Error($"Vnavmesh not found, navigation failed");
-            e.LogInternal();
-            return null;
-        }
-    }
+    [EzIPC("Nav.%m")] public readonly Func<bool> IsReady;
     [EzIPC("Nav.%m")] public readonly Func<float> BuildProgress;
     [EzIPC("Nav.%m")] public readonly Func<bool> Reload;
     [EzIPC("Nav.%m")] public readonly Func<bool> Rebuild;

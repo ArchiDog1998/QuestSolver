@@ -159,7 +159,6 @@ internal class QuestFinishSolver : BaseSolver
         foreach (var item in objs)
         {
             var icon = item.GetNameplateIconId();
-
             if (icon is 71203 or 71205 or 70983//MSQ
                 or 71343 or 71345 // Important
                 or 71223 or 71225 // Side

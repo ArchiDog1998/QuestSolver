@@ -173,7 +173,7 @@ internal static class QuestHelper
 
     private static bool CanTake(CraftLeve craftLeve)
     {
-        var count = Math.Max((byte)1, craftLeve.Repeats);
+        var count = craftLeve.Repeats + 1;
 
         foreach (var item in craftLeve.UnkData3)
         {

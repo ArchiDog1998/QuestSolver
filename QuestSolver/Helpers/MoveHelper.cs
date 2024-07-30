@@ -46,13 +46,13 @@ internal static class MoveHelper
     public static bool MoveToInMap(Vector3 destination)
     {
         var distance = Plugin.Settings.Distance - 0.1f;
-        var close = Vector3.DistanceSquared(Player.Object.Position, destination) < distance * distance;
+        var close = Vector2.DistanceSquared(Player.Object.Position.ToVector2(), destination.ToVector2()) < distance * distance;
 
         if (close) //Nearby!
         {
             Plugin.Vnavmesh.Stop();
 
-            if (MountHelper.IsMount && MountHelper.InCombat) // Go for combat!
+            if (MountHelper.IsMount)
             {
                 MountHelper.TryDisMount();
                 return true;
@@ -111,7 +111,7 @@ internal static class MoveHelper
 
         if (!close)
         {
-            if (!Plugin.Vnavmesh.PathfindInProgress())
+            if (!Plugin.Vnavmesh.PathfindInProgress() && Plugin.Vnavmesh.IsReady())
             {
                 Svc.Log.Info("Calculating Is Fly " + MountHelper.IsFlying);
                 var random = new Random();
@@ -141,7 +141,7 @@ internal static class MoveHelper
     }
     public static bool IsInSide(this Level level, Vector3 position)
     {
-        var radius = Math.Min(level.Radius, 30);
+        var radius = level.Radius;
         return Vector2.DistanceSquared(level.ToLocation().ToVector2(), position.ToVector2()) <= Math.Max(Plugin.Settings.Distance * Plugin.Settings.Distance, radius * radius);
     }
 }

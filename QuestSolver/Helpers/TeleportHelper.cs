@@ -81,7 +81,7 @@ internal class TeleportHelper
         return v;
     }
 
-    private static DateTime _lastCall = DateTime.Now;
+    private static DateTime _lastCall = DateTime.Now - TimeSpan.FromSeconds(6);
 
     private static unsafe bool Teleport(Aetheryte aetheryte)
     {
