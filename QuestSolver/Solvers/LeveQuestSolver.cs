@@ -95,7 +95,9 @@ internal class LeveQuestSolver : BaseSolver
         var leve = Svc.Data.GetExcelSheet<Leve>()?.GetRow(LeveWork.LeveId);
         if (leve == null) return;
 
-        if (LeveWork.Sequence == 255)
+        var start = leve.LevelStart.Value;
+
+        if (LeveWork.Sequence == 255 || start == null)
         {
             var end = leve.LevelLevemete.Value;
             if (end == null) return;
@@ -110,13 +112,10 @@ internal class LeveQuestSolver : BaseSolver
         }
         else if (Svc.Condition[Dalamud.Game.ClientState.Conditions.ConditionFlag.BoundByDuty])
         {
-            var start = leve.LevelStart.Value;
             FinishEventDuty(start);
         }
         else
         {
-            var start = leve.LevelStart.Value;
-            if (start == null) return;
             if (MoveHelper.MoveTo(start)) return;
             InitEventDuty();
         }
@@ -195,10 +194,15 @@ internal class LeveQuestSolver : BaseSolver
         Callback.Fire((AtkUnitBase*)args.Addon, true, open ? 0 : -1);
     }
 
-    private unsafe void AddonGetLeve(AddonEvent type, AddonArgs args)
+    private async void AddonGetLeve(AddonEvent type, AddonArgs args)
     {
         _open = false;
-        EventHelper.SendEvent(AgentId.LeveQuest, 0, 3, _leveId);
+        await Task.Delay(50);
+
+        unsafe
+        {
+            EventHelper.SendEvent(AgentId.LeveQuest, 0, 3, _leveId);
+        }
     }
 
     private static unsafe void OnAddonRequest(AddonEvent type, AddonArgs args)
